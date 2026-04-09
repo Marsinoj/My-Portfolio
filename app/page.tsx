@@ -11,7 +11,6 @@ import {
   SiMysql,
   SiNodedotjs,
   SiGithub,
-  SiInstagram,
   SiTelegram
 } from "react-icons/si";
 import { FaLinkedin } from "react-icons/fa";
@@ -207,14 +206,23 @@ export default function Home() {
     </div>
   );
 
+  // All social links pre-rendered as JSX — no component references, safe for TypeScript
+  const socialLinks: { label: string; href: string; icon: React.ReactNode }[] = [
+    { label: "Email",     href: "mailto:mariel.inoj@gmail.com",                           icon: <span className="text-base leading-none">✉</span> },
+    { label: "GitHub",    href: "https://github.com/Marsinoj",                             icon: <SiGithub size={16} /> },
+    { label: "LinkedIn",  href: "https://www.linkedin.com/in/mariel-inojales-aa6b65333/",  icon: <FaLinkedin size={16} /> },
+    { label: "Telegram",  href: "https://t.me/",                                           icon: <SiTelegram size={16} /> },
+    { label: "Portfolio", href: "#",                                                        icon: null },
+  ];
+
   if (loading) return <GitLoader onFinish={() => setLoading(false)} />;
 
   return (
     <main
-        className="relative min-h-screen overflow-x-hidden transition-colors duration-300"
-        style={{ backgroundColor: `${t.bg}40`, color: t.text }}
-      >
-        <GridBg />
+      className="relative min-h-screen overflow-x-hidden transition-colors duration-300"
+      style={{ backgroundColor: `${t.bg}40`, color: t.text }}
+    >
+      <GridBg />
 
       <style>{`
         @keyframes orbFloat1 {
@@ -254,7 +262,6 @@ export default function Home() {
         }
       `}</style>
 
-
       {/* ── Navigation ── */}
       <nav
         className="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-8 md:px-[192px] py-5 backdrop-blur-xl transition-colors duration-300"
@@ -268,7 +275,6 @@ export default function Home() {
           Riri
         </button>
 
-        {/* Desktop: status badge + CTA + controls */}
         <div className="hidden md:flex items-center gap-2">
           <div
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs"
@@ -277,7 +283,6 @@ export default function Home() {
             <span className="w-1.5 h-1.5 rounded-full bg-[#1D9E75] animate-pulse" />
             Available for work
           </div>
-
           <button
             className="px-3 py-1.5 rounded-full text-xs"
             style={{ border: `1px solid ${t.border}`, color: t.text }}
@@ -285,7 +290,6 @@ export default function Home() {
           >
             Say hello →
           </button>
-
           <ThemeButton />
           <button
             onClick={() => setMenuOpen(!menuOpen)}
@@ -297,7 +301,6 @@ export default function Home() {
           </button>
         </div>
 
-        {/* Mobile: theme + menu only */}
         <div className="md:hidden flex items-center gap-2">
           <ThemeButton />
           <button
@@ -326,9 +329,7 @@ export default function Home() {
           >
             Curriculum Vitae &#x2197;
           </button>
-          <a
-            href="#projects"
-            onClick={() => setMenuOpen(false)}
+          <a href="#projects" onClick={() => setMenuOpen(false)}
             className="text-sm px-3 py-2 rounded-lg transition-colors hover:bg-black/5"
             style={{ color: t.textMuted }}
             onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => { e.currentTarget.style.color = "#22d3ee"; }}
@@ -336,9 +337,7 @@ export default function Home() {
           >
             Projects &#x2197;
           </a>
-          <a
-            href="#certificates"
-            onClick={() => setMenuOpen(false)}
+          <a href="#certificates" onClick={() => setMenuOpen(false)}
             className="text-sm px-3 py-2 rounded-lg transition-colors hover:bg-black/5"
             style={{ color: t.textMuted }}
             onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => { e.currentTarget.style.color = "#f97316"; }}
@@ -346,9 +345,15 @@ export default function Home() {
           >
             Certificates &#x2197;
           </a>
-          <a
-            href="#contact"
-            onClick={() => setMenuOpen(false)}
+          <a href="#tools" onClick={() => setMenuOpen(false)}
+            className="text-sm px-3 py-2 rounded-lg transition-colors hover:bg-black/5"
+            style={{ color: t.textMuted }}
+            onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => { e.currentTarget.style.color = "#e879f9"; }}
+            onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => { e.currentTarget.style.color = t.textMuted; }}
+          >
+            Tools &#x2197;
+          </a>
+          <a href="#contact" onClick={() => setMenuOpen(false)}
             className="text-sm px-3 py-2 rounded-lg transition-colors hover:bg-black/5"
             style={{ color: t.textMuted }}
             onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => { e.currentTarget.style.color = "#a3e635"; }}
@@ -388,7 +393,7 @@ export default function Home() {
           </p>
           <div className="flex gap-3 flex-shrink-0">
             <button
-              onClick={() => setShowCV(true)}
+              onClick={() => window.open("/Inojales_Resume.pdf", "_blank")}
               className="flex items-center gap-2 text-sm rounded-full px-5 py-2.5 transition-all duration-200"
               style={{ border: `1px solid ${t.borderHover}`, color: t.text }}
               onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
@@ -534,9 +539,110 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ── Tools ── */}
+      <section id="tools" className="px-8 md:px-[192px] py-32" style={{ borderTop: `1px solid ${t.border}` }}>
+        <p className="text-xs uppercase tracking-widest mb-4" style={{ color: t.textFaint }}>04 — Tools</p>
+        <h2
+          className="text-[clamp(2.5rem,6vw,5rem)] font-bold tracking-tight mb-4"
+          style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: t.text }}
+        >
+          Apps &amp; Tools
+        </h2>
+        <p className="text-sm max-w-md mb-16 leading-relaxed" style={{ color: t.textMuted }}>
+          The software and tools I reach for when building, designing, and creating.
+        </p>
+
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          {[
+            {
+              name: "Visual Studio Code", category: "Code Editor", desc: "Primary editor for web development", color: "#22d3ee",
+              icon: (
+                <svg viewBox="0 0 24 24" width="28" height="28" fill="none">
+                  <path d="M17 1.5L1.5 9l4.25 3.25L17 5.5V1.5z" fill="#22d3ee" opacity="0.9"/>
+                  <path d="M17 22.5L1.5 15l4.25-3.25L17 18.5v4z" fill="#22d3ee" opacity="0.9"/>
+                  <path d="M17 1.5v4L5.75 12.25 17 18.5v4l5-2.5V4L17 1.5z" fill="#22d3ee"/>
+                </svg>
+              ),
+            },
+            {
+              name: "Visual Studio 2022", category: "IDE", desc: "Full-featured IDE for larger projects", color: "#a855f7",
+              icon: (
+                <svg viewBox="0 0 24 24" width="28" height="28" fill="none">
+                  <path d="M17 1.5L1.5 9l4.25 3.25L17 5.5V1.5z" fill="#a855f7" opacity="0.9"/>
+                  <path d="M17 22.5L1.5 15l4.25-3.25L17 18.5v4z" fill="#a855f7" opacity="0.9"/>
+                  <path d="M17 1.5v4L5.75 12.25 17 18.5v4l5-2.5V4L17 1.5z" fill="#a855f7"/>
+                </svg>
+              ),
+            },
+            {
+              name: "Microsoft Excel", category: "Spreadsheets", desc: "Data analysis and reporting", color: "#22c55e",
+              icon: (
+                <svg viewBox="0 0 24 24" width="28" height="28" fill="none">
+                  <rect x="2" y="3" width="20" height="18" rx="2" fill="#22c55e" opacity="0.15"/>
+                  <rect x="2" y="3" width="20" height="18" rx="2" stroke="#22c55e" strokeWidth="1.5"/>
+                  <path d="M8 8l3 4-3 4M16 8l-3 4 3 4" stroke="#22c55e" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              ),
+            },
+            {
+              name: "Microsoft Word", category: "Documents", desc: "Documentation and reports", color: "#3b82f6",
+              icon: (
+                <svg viewBox="0 0 24 24" width="28" height="28" fill="none">
+                  <rect x="2" y="3" width="20" height="18" rx="2" fill="#3b82f6" opacity="0.15"/>
+                  <rect x="2" y="3" width="20" height="18" rx="2" stroke="#3b82f6" strokeWidth="1.5"/>
+                  <path d="M7 8l2.5 8L12 10l2.5 6L17 8" stroke="#3b82f6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              ),
+            },
+            {
+              name: "Canva", category: "Design", desc: "Graphics, posters & presentations", color: "#f97316",
+              icon: (
+                <svg viewBox="0 0 24 24" width="28" height="28" fill="none">
+                  <circle cx="12" cy="12" r="9" fill="#f97316" opacity="0.15" stroke="#f97316" strokeWidth="1.5"/>
+                  <circle cx="9" cy="10" r="2" fill="#f97316"/>
+                  <circle cx="15" cy="14" r="2" fill="#f97316" opacity="0.7"/>
+                  <path d="M9 12c0 2 1.5 4 3 4s3-1.5 3-3" stroke="#f97316" strokeWidth="1.5" strokeLinecap="round"/>
+                </svg>
+              ),
+            },
+            {
+              name: "CapCut", category: "Video Editing", desc: "Video editing and content creation", color: "#e879f9",
+              icon: (
+                <svg viewBox="0 0 24 24" width="28" height="28" fill="none">
+                  <rect x="3" y="6" width="14" height="12" rx="2" fill="#e879f9" opacity="0.15" stroke="#e879f9" strokeWidth="1.5"/>
+                  <path d="M17 9.5l4-2v9l-4-2" stroke="#e879f9" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M8 10v4M10 12H6" stroke="#e879f9" strokeWidth="1.5" strokeLinecap="round"/>
+                </svg>
+              ),
+            },
+          ].map((tool, i) => (
+            <div
+              key={i}
+              className="group rounded-2xl p-6 transition-all duration-300"
+              style={{ backgroundColor: t.bgCard, border: `1px solid ${t.border}` }}
+              onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => {
+                e.currentTarget.style.borderColor = tool.color + "55";
+                e.currentTarget.style.transform = "translateY(-2px)";
+              }}
+              onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => {
+                e.currentTarget.style.borderColor = t.border;
+                e.currentTarget.style.transform = "translateY(0)";
+              }}
+            >
+              <div className="mb-4">{tool.icon}</div>
+              <p className="text-[10px] uppercase tracking-widest font-bold mb-1.5" style={{ color: tool.color }}>
+                {tool.category}
+              </p>
+              <h3 className="text-sm font-semibold mb-1" style={{ color: t.text }}>{tool.name}</h3>
+              <p className="text-xs leading-relaxed" style={{ color: t.textMuted }}>{tool.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* ── Contact ── */}
       <section id="contact" className="px-8 md:px-[192px] py-32" style={{ borderTop: `1px solid ${t.border}` }}>
-        <p className="text-xs uppercase tracking-widest mb-4" style={{ color: t.textFaint }}>04 — Contact</p>
+        <p className="text-xs uppercase tracking-widest mb-4" style={{ color: t.textFaint }}>05 — Contact</p>
         <h2
           className="text-[clamp(2.5rem,6vw,5rem)] font-bold tracking-tight mb-4"
           style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: t.text }}
@@ -547,14 +653,20 @@ export default function Home() {
           Open to collaborations, internship opportunities, or just a friendly chat about tech and design.
         </p>
 
-        <div className="flex gap-4 mb-12">
+        <div className="flex gap-4 mb-12 items-end">
           {[
-            { icon: "✉", label: "Email" },
-            { icon: <SiGithub size={16} />, label: "GitHub" },
+            { icon: <span className="text-base leading-none">✉</span>, label: "Email",  href: "mailto:mariel.inoj@gmail.com" },
+            { icon: <SiGithub size={16} />,                             label: "GitHub", href: "https://github.com/Marsinoj" },
           ].map((item, i) => (
-            <div key={i} className="flex flex-col items-center gap-2">
+            <a
+              key={i}
+              href={item.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-col items-center gap-2"
+            >
               <div
-                className="w-12 h-12 rounded-full flex items-center justify-center transition-all cursor-default"
+                className="w-12 h-12 rounded-full flex items-center justify-center transition-all cursor-pointer hover:bg-gray-200"
                 style={{ border: `1px solid ${t.border}`, color: t.textMuted }}
               >
                 {item.icon}
@@ -562,42 +674,88 @@ export default function Home() {
               <span className="text-[10px] uppercase tracking-widest" style={{ color: t.textFaint }}>
                 {item.label}
               </span>
-            </div>
+            </a>
           ))}
-          <button
-            onClick={() => setShowSocials(true)}
-            className="h-12 flex items-center gap-3 rounded-full px-8 text-sm transition-all duration-300 self-start group"
-            style={{ border: `1px solid ${t.borderHover}`, color: t.text }}
-            onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
-              e.currentTarget.style.backgroundColor = t.btnHoverBg;
-              e.currentTarget.style.color = t.btnHoverText;
-            }}
-            onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
-              e.currentTarget.style.backgroundColor = "transparent";
-              e.currentTarget.style.color = t.text;
-            }}
-          >
-            <span>Contact me</span>
-            <span className="group-hover:translate-x-1 transition-transform duration-200">→</span>
-          </button>
+
+          {/* Contact me — circle button matching the icon row */}
+          <div className="flex flex-col items-center gap-2">
+            <button
+              onClick={() => setShowSocials(true)}
+              className="w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200"
+              style={{ border: `1px solid ${t.borderHover}`, color: t.textMuted }}
+              onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
+                e.currentTarget.style.backgroundColor = t.btnHoverBg;
+                e.currentTarget.style.color = t.btnHoverText;
+              }}
+              onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
+                e.currentTarget.style.backgroundColor = "transparent";
+                e.currentTarget.style.color = t.text;
+              }}
+            >
+              →
+            </button>
+            <span className="text-[10px] uppercase tracking-widest" style={{ color: t.textFaint }}>
+              Contact
+            </span>
+          </div>
         </div>
 
+        {/* ── Footer ── */}
         <div
           className="flex flex-col md:flex-row justify-between items-start md:items-center pt-8 mt-16 gap-4"
           style={{ borderTop: `1px solid ${t.border}` }}
         >
           <p className="text-xs" style={{ color: t.textFaint }}>© 2026 Mariel Inojales. All rights reserved.</p>
-          <p className="text-xs" style={{ color: t.textFaint }}>Built with Next.js & Tailwind CSS</p>
+          <p className="text-xs" style={{ color: t.textFaint }}>Built with Next.js &amp; Tailwind CSS</p>
         </div>
       </section>
 
-      {/* ── Certificate Detail Screen Overlay ── */}
+      {/* ── CV Overlay ── */}
+      {showCV && (
+        <div
+          className="fixed inset-0 z-50 overflow-y-auto transition-colors duration-300"
+          style={{ backgroundColor: `${t.bg}cc`, color: t.text }}
+        >
+          <GridBg />
+          <div
+            className="sticky top-0 z-10 flex items-center justify-between px-8 md:px-[192px] py-5 backdrop-blur-xl"
+            style={{ borderBottom: `1px solid ${t.border}`, backgroundColor: `${t.bg}cc` }}
+          >
+            <button
+              onClick={() => setShowCV(false)}
+              className="flex items-center gap-2 text-sm rounded-full px-4 py-2 transition-colors"
+              style={{ border: `1px solid ${t.border}`, color: t.textMuted }}
+              onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.color = t.text; }}
+              onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.color = t.textMuted; }}
+            >
+              ← Back
+            </button>
+            <span className="text-xs uppercase tracking-widest" style={{ color: t.textFaint }}>
+              Curriculum Vitae
+            </span>
+          </div>
+          <div className="px-8 md:px-[192px] py-16">
+            <p className="text-xs uppercase tracking-widest mb-6" style={{ color: t.textFaint }}>Curriculum Vitae</p>
+            <h2
+              className="text-[clamp(1.8rem,4vw,3.5rem)] font-bold tracking-tight mb-10"
+              style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: t.text }}
+            >
+              Mariel Inojales
+            </h2>
+            <div className="w-full h-[80vh] rounded-2xl overflow-hidden" style={{ border: `1px solid ${t.border}` }}>
+              <iframe src="/Inojales_Resume.pdf" className="w-full h-full" title="Curriculum Vitae" />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Certificate Detail Overlay ── */}
       {selectedCert && (
         <div
           className="fixed inset-0 z-50 overflow-y-auto transition-colors duration-300"
-          style={{ backgroundColor: t.bg, color: t.text }}
+          style={{ backgroundColor: `${t.bg}cc`, color: t.text }}
         >
-
+          <GridBg />
           <div
             className="sticky top-0 z-10 flex items-center justify-between px-8 md:px-[192px] py-5 backdrop-blur-xl"
             style={{ borderBottom: `1px solid ${t.border}`, backgroundColor: `${t.bg}cc` }}
@@ -628,8 +786,8 @@ export default function Home() {
 
               <ul className="space-y-5 mb-12">
                 {[
-                  { label: "Issuer", value: selectedCert.issuer, valueColor: issuerColor(selectedCert.issuer), mono: false },
-                  { label: "Date Issued", value: selectedCert.date, valueColor: t.text, mono: false },
+                  { label: "Issuer",       value: selectedCert.issuer, valueColor: issuerColor(selectedCert.issuer), mono: false },
+                  { label: "Date Issued",  value: selectedCert.date,   valueColor: t.text, mono: false },
                   {
                     label: "Category",
                     value: selectedCert.issuer === "Simplilearn" ? "IT & Networking" : selectedCert.issuer === "Udemy" ? "Web Development" : "Programming",
@@ -682,72 +840,54 @@ export default function Home() {
         </div>
       )}
 
-        {showSocials && (
-           <div
-            className="fixed inset-0 z-50 flex items-center justify-center"
-            style={{ backgroundColor: t.bg, color: t.text }}
+      {/* ── Socials Overlay ── */}
+      {showSocials && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          style={{ backgroundColor: `${t.bg}cc`, color: t.text }}
+        >
+          <GridBg />
+          <button
+            onClick={() => setShowSocials(false)}
+            className="absolute top-6 right-6 text-sm px-4 py-2 rounded-full transition-all"
+            style={{ border: `1px solid ${t.border}`, color: t.textMuted }}
+            onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.color = t.text; }}
+            onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.color = t.textMuted; }}
           >
+            ✕ Close
+          </button>
 
-            {/* Close */}
-            <button
-              onClick={() => setShowSocials(false)}
-              className="absolute top-6 right-6 text-sm px-4 py-2 rounded-full transition-all"
-              style={{ border: `1px solid ${t.border}`, color: t.textMuted }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = t.text)}
-              onMouseLeave={(e) => (e.currentTarget.style.color = t.textMuted)}
-            >
-              ✕ Close
-            </button>
+          <div className="relative z-10 flex flex-col items-center gap-4 w-full max-w-sm px-6">
+            <img src="/pfp.jpg" alt="Profile" className="w-20 h-20 rounded-full object-cover" />
+            <h3 className="text-lg font-semibold">Mariel Inojales</h3>
+            <p className="text-sm" style={{ color: t.textMuted }}>connect with me.</p>
 
-            {/* CENTER CONTENT (no card) */}
-            <div className="flex flex-col items-center gap-4 w-full max-w-sm px-6 animate-[fadeIn_0.2s_ease]">
-
-              {/* Profile */}
-              <img
-                src="/pfp.jpg"
-                alt="Profile"
-                className="w-20 h-20 rounded-full object-cover"
-              />
-
-              <h3 className="text-lg font-semibold">Mariel Inojales</h3>
-
-              <p className="text-sm" style={{ color: t.textMuted }}>
-                connect with me.
-              </p>
-
-              {/* Links */}
-              <div className="w-full flex flex-col gap-3 mt-4">
-              {[
-              { label: "GitHub", href: "https://github.com/Marsinoj", icon: SiGithub },
-              { label: "LinkedIn", href: "https://www.linkedin.com/in/mariel-inojales-aa6b65333/", icon: FaLinkedin },
-              { label: "Instagram", href: "https://instagram.com/", icon: SiInstagram },
-              { label: "Telegram", href: "https://t.me/", icon: SiTelegram },
-              { label: "Portfolio", href: "#", icon: null },
-            ].map((item, i) => (
-              <a
-                key={i}
-                href={item.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full flex items-center justify-center gap-2 text-sm py-3 rounded-lg transition-all"
-                style={{ border: `1px solid ${t.border}`, color: t.text }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = t.btnHoverBg;
-                  e.currentTarget.style.color = t.btnHoverText;
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "transparent";
-                  e.currentTarget.style.color = t.text;
-                }}
-              >
-                {item.icon && <item.icon size={16} />}
-                {item.label}
-              </a>
-            ))}
-              </div>
+            <div className="w-full flex flex-col gap-3 mt-4">
+              {socialLinks.map((item, i) => (
+                <a
+                  key={i}
+                  href={item.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center justify-center gap-2 text-sm py-3 rounded-lg transition-all"
+                  style={{ border: `1px solid ${t.border}`, color: t.text }}
+                  onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => {
+                    e.currentTarget.style.backgroundColor = t.btnHoverBg;
+                    e.currentTarget.style.color = t.btnHoverText;
+                  }}
+                  onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => {
+                    e.currentTarget.style.backgroundColor = "transparent";
+                    e.currentTarget.style.color = t.text;
+                  }}
+                >
+                  {item.icon}
+                  {item.label}
+                </a>
+              ))}
             </div>
           </div>
-        )}
+        </div>
+      )}
     </main>
   );
 }
