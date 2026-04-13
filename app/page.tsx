@@ -13,7 +13,8 @@ import {
   SiGithub,
   SiTelegram
 } from "react-icons/si";
-import { FaLinkedin } from "react-icons/fa";
+import { FaLinkedin, FaFacebook } from "react-icons/fa";
+import { supabase } from "@/lib/supabase";
 
 type Certificate = {
   id: number;
@@ -45,10 +46,33 @@ export default function Home() {
   const [showSocials, setShowSocials] = useState(false);
   const [selectedCert, setSelectedCert] = useState<Certificate | null>(null);
   const [dark, setDark] = useState(true);
+  const [socialLinks, setSocialLinks] = useState<{ label: string; href: string; icon: React.ReactNode }[]>([]);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
   }, [dark]);
+  useEffect(() => {
+  supabase
+    .from("social_links")
+    .select("*")
+    .order("sort_order")
+    .then(({ data }) => {
+      if (!data) return;
+      const iconMap: Record<string, React.ReactNode> = {
+        FaLinkedin:  <FaLinkedin size={16} />,
+        FaFacebook:  <FaFacebook size={16} />,
+        SiGithub:    <SiGithub size={16} />,
+        SiTelegram:  <SiTelegram size={16} />,
+      };
+      setSocialLinks(
+        data.map((s) => ({
+          label: s.label,
+          href:  s.href,
+          icon:  iconMap[s.icon_name] ?? <span className="text-base leading-none">✉</span>,
+        }))
+      );
+    });
+}, []);
 
   const certificatesData: Certificate[] = [
     { id: 6, title: "Introduction to Computer Networking", issuer: "Simplilearn", date: "April 6, 2026", image: "/Certificate6.png" },
@@ -207,13 +231,6 @@ export default function Home() {
   );
 
   // All social links pre-rendered as JSX — no component references, safe for TypeScript
-  const socialLinks: { label: string; href: string; icon: React.ReactNode }[] = [
-    { label: "Email",     href: "mailto:mariel.inoj@gmail.com",                           icon: <span className="text-base leading-none">✉</span> },
-    { label: "GitHub",    href: "https://github.com/Marsinoj",                             icon: <SiGithub size={16} /> },
-    { label: "LinkedIn",  href: "https://www.linkedin.com/in/mariel-inojales-aa6b65333/",  icon: <FaLinkedin size={16} /> },
-    { label: "Telegram",  href: "https://t.me/",                                           icon: <SiTelegram size={16} /> },
-    { label: "Portfolio", href: "#",                                                        icon: null },
-  ];
 
   if (loading) return <GitLoader onFinish={() => setLoading(false)} />;
 
