@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+export const dynamic = "force-dynamic";
 
 type Tab = "certificates" | "projects" | "skills" | "tools" | "socials";
 
