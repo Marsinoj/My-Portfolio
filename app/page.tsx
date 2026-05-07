@@ -46,7 +46,20 @@ export default function Home() {
   const [showSocials, setShowSocials] = useState(false);
   const [selectedCert, setSelectedCert] = useState<Certificate | null>(null);
   const [dark, setDark] = useState(true);
-  const [socialLinks, setSocialLinks] = useState<{ label: string; href: string; icon: React.ReactNode }[]>([]);
+  const [socialLinks, setSocialLinks] = useState<{ label: string; href: string; icon: React.ReactNode; isEmail?: boolean }[]>([]);
+  const [pfpHovered, setPfpHovered] = useState(false);
+  const [radialOpen, setRadialOpen] = useState<string | null>(null);
+  const [hoveredSlice, setHoveredSlice] = useState<string | null>(null);
+  const [emailCopied, setEmailCopied] = useState(false);
+
+  const YOUR_EMAIL = "marieljinojales@gmail.com"; // ← change this to your email
+
+  const handleCopyEmail = (email: string) => {
+    navigator.clipboard.writeText(email).then(() => {
+      setEmailCopied(true);
+      setTimeout(() => setEmailCopied(false), 2500);
+    });
+  };
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
@@ -69,6 +82,7 @@ export default function Home() {
           label: s.label,
           href:  s.href,
           icon:  iconMap[s.icon_name] ?? <span className="text-base leading-none">✉</span>,
+          isEmail: s.icon_name === "MdEmail",
         }))
       );
     });
@@ -277,6 +291,24 @@ export default function Home() {
             width: calc((100vw - 64px - 32px) / 3);
           }
         }
+        @keyframes pfpCardIn {
+          from { opacity: 0; transform: translateY(8px) scale(0.97); }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .pfp-hover-card {
+          animation: pfpCardIn 0.22s cubic-bezier(0.16,1,0.3,1) forwards;
+        }
+        @keyframes toastIn {
+          from { opacity: 0; transform: translateY(10px) scale(0.95); }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes toastOut {
+          from { opacity: 1; transform: translateY(0) scale(1); }
+          to   { opacity: 0; transform: translateY(-8px) scale(0.95); }
+        }
+        .toast-enter {
+          animation: toastIn 0.25s cubic-bezier(0.16,1,0.3,1) forwards;
+        }
       `}</style>
 
       {/* ── Navigation ── */}
@@ -300,13 +332,6 @@ export default function Home() {
             <span className="w-1.5 h-1.5 rounded-full bg-[#1D9E75] animate-pulse" />
             Available for work
           </div>
-          <button
-            className="px-3 py-1.5 rounded-full text-xs"
-            style={{ border: `1px solid ${t.border}`, color: t.text }}
-            onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
-          >
-            Say hello →
-          </button>
           <ThemeButton />
           <button
             onClick={() => setMenuOpen(!menuOpen)}
@@ -424,21 +449,21 @@ export default function Home() {
             >
               Resume &#x2197;
             </button>
-            <a
-              href="#contact"
+            <button
+              onClick={() => setRadialOpen("Contact")}
               className="flex items-center gap-2 text-sm rounded-full px-5 py-2.5 transition-all duration-200"
               style={{ border: `1px solid ${t.borderHover}`, color: t.text }}
-              onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => {
+              onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
                 e.currentTarget.style.backgroundColor = t.btnHoverBg;
                 e.currentTarget.style.color = t.btnHoverText;
               }}
-              onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => {
+              onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
                 e.currentTarget.style.backgroundColor = "transparent";
                 e.currentTarget.style.color = t.text;
               }}
             >
               Get in touch &#x2197;
-            </a>
+            </button>
           </div>
         </div>
 
@@ -455,110 +480,332 @@ export default function Home() {
           ))}
         </div>
 
-        <div className="hidden md:block absolute bottom-24 right-[192px]">
-          <img
-            src="/pfp.jpg"
-            alt="Mariel Inojales"
-            className="w-48 h-48 rounded-full object-cover grayscale hover:grayscale-0 transition-all duration-500"
-            style={{ border: `1px solid ${t.border}` }}
-          />
-        </div>
-      </section>
-
-      {/* ── Projects ── */}
-      <section
-        id="projects"
-        className="min-h-screen flex flex-col justify-center px-8 md:px-[192px] py-32"
-        style={{ borderTop: `1px solid ${t.border}` }}
-      >
-        <p className="text-xs uppercase tracking-widest mb-4" style={{ color: t.textFaint }}>02 — Projects</p>
-        <h2
-          className="text-[clamp(2.5rem,6vw,5rem)] font-bold tracking-tight mb-16"
-          style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: t.text }}
-        >
-          Selected Work
-        </h2>
-        <div
-          className="flex items-center justify-center rounded-2xl h-64 text-sm"
-          style={{ border: `1px solid ${t.border}`, color: t.textFaint }}
-        >
-          Projects coming soon
-        </div>
-      </section>
-
-      {/* ── Certificates ── */}
-      <section id="certificates" className="py-32" style={{ borderTop: `1px solid ${t.border}` }}>
-        <div className="px-8 md:px-[192px] mb-12">
-          <p className="text-xs uppercase tracking-widest mb-4" style={{ color: t.textFaint }}>03 — Certifications</p>
-          <h2
-            className="text-[clamp(2.5rem,6vw,5rem)] font-bold tracking-tight"
-            style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: t.text }}
+        {/* ── Mobile Profile + Nav (visible on mobile only) ── */}
+        <div className="flex md:hidden flex-col items-center gap-6 mt-14">
+          {/* Profile photo */}
+          <div
+            style={{ position: "relative", width: 140, height: 140 }}
+            onMouseEnter={() => setPfpHovered(true)}
+            onMouseLeave={() => setPfpHovered(false)}
           >
-            Certificates
-          </h2>
-          <p className="text-xs mt-3" style={{ color: t.textFaint }}>Click any certificate to view details</p>
-        </div>
+            <img
+              src="/pfp.jpg"
+              alt="Mariel Inojales"
+              style={{
+                position: "absolute", inset: 0,
+                width: 140, height: 140,
+                borderRadius: "50%", objectFit: "cover",
+                border: `2px solid ${t.border}`,
+                opacity: pfpHovered ? 0 : 1,
+                transition: "opacity 0.4s ease",
+              }}
+            />
+            <img
+              src="/pfp-hover.jpg"
+              alt="Mariel Inojales"
+              style={{
+                position: "absolute", inset: 0,
+                width: 140, height: 140,
+                borderRadius: "50%", objectFit: "cover",
+                border: `2px solid ${t.borderHover}`,
+                opacity: pfpHovered ? 1 : 0,
+                transition: "opacity 0.4s ease",
+              }}
+            />
+          </div>
 
-        <div className="px-8 md:px-[192px]">
-          <div className="relative overflow-hidden rounded-2xl">
-            <div
-              className="absolute left-0 top-0 bottom-0 z-10 pointer-events-none"
-              style={{ width: "80px", background: `linear-gradient(to right, ${t.bg} 30%, transparent)` }}
-            />
-            <div
-              className="absolute right-0 top-0 bottom-0 z-10 pointer-events-none"
-              style={{ width: "80px", background: `linear-gradient(to left, ${t.bg} 30%, transparent)` }}
-            />
-            <div className="marquee-track">
-              {[...certificatesData, ...certificatesData].map((cert, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setSelectedCert(cert)}
-                  className="cert-card-item group rounded-[18px] overflow-hidden transition-all duration-300 text-left focus:outline-none"
-                  style={{ backgroundColor: t.bgCard, border: `1px solid ${t.border}`, position: "relative" }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = t.borderHover;
-                    e.currentTarget.style.transform = "translateY(-3px)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = t.border;
-                    e.currentTarget.style.transform = "translateY(0)";
-                  }}
-                >
-                  <div className="w-full overflow-hidden" style={{ height: "200px", background: t.bgCard }}>
-                    <img
-                      src={cert.image}
-                      alt={cert.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-all duration-500"
-                      style={{ display: "block" }}
-                      onError={(e) => { (e.target as HTMLImageElement).style.opacity = "0.08"; }}
-                    />
-                  </div>
-                  <div className="p-4">
-                    <p className="text-[10px] uppercase tracking-widest font-bold mb-2" style={{ color: issuerColor(cert.issuer) }}>
-                      {cert.issuer}
-                    </p>
-                    <h3 className="text-xs font-medium leading-snug line-clamp-2" style={{ color: t.textMuted }}>
-                      {cert.title}
-                    </h3>
-                    <p className="text-[10px] mt-2" style={{ color: t.textFaint }}>{cert.date}</p>
-                  </div>
-                  <div
-                    className="absolute top-3 right-3 w-7 h-7 rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
-                    style={{ background: t.border, border: `1px solid ${t.border}`, color: t.textMuted }}
-                  >
-                    ↗
-                  </div>
-                </button>
-              ))}
-            </div>
+          {/* 2×2 nav grid */}
+          <div className="grid grid-cols-2 gap-3 w-full max-w-xs">
+            {[
+              { label: "About",        color: "#a3e635", caption: "Who I am" },
+              { label: "Certificates", color: "#22d3ee", caption: "My certs" },
+              { label: "Projects",     color: "#f97316", caption: "My work"  },
+              { label: "Contact",      color: "#e879f9", caption: "Reach me" },
+            ].map((item) => (
+              <button
+                key={item.label}
+                onClick={() => setRadialOpen(item.label)}
+                className="flex flex-col items-start gap-0.5 rounded-2xl px-4 py-3 text-left transition-all duration-200"
+                style={{
+                  border: `1px solid ${item.color}55`,
+                  backgroundColor: dark ? "rgba(15,15,15,0.8)" : "rgba(245,245,240,0.85)",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = item.color + "cc";
+                  e.currentTarget.style.backgroundColor = item.color + "18";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = item.color + "55";
+                  e.currentTarget.style.backgroundColor = dark ? "rgba(15,15,15,0.8)" : "rgba(245,245,240,0.85)";
+                }}
+              >
+                <span className="text-xs font-bold tracking-wide" style={{ color: item.color }}>{item.label}</span>
+                <span className="text-[11px]" style={{ color: t.textMuted }}>{item.caption}</span>
+              </button>
+            ))}
           </div>
         </div>
+
+        {/* ── PFP Radial Menu ── */}
+        <div
+          className="hidden md:block absolute bottom-24 right-[192px]"
+          style={{ position: "absolute", paddingTop: 0 }}
+          onMouseEnter={() => setPfpHovered(true)}
+          onMouseLeave={() => { setPfpHovered(false); setHoveredSlice(null); }}
+        >
+          {/* Half-pie radial menu — FIXED (top-aligned) */}
+{(() => {
+  const size = 340;
+  const pfpR = size / 2;      // 170
+  const outerR = pfpR + 100;  // 270
+  const innerR = pfpR;        // 170
+
+  const items = [
+    { label: "About",        color: "#a3e635", caption: "Who I am",  image: "/pfp.jpg" },
+    { label: "Certificates", color: "#22d3ee", caption: "My certs",  image: "/Certificate1.png" },
+    { label: "Projects",     color: "#f97316", caption: "My work",   image: "/pfp.jpg" },
+    { label: "Contact",      color: "#e879f9", caption: "Reach me",  image: "/pfp.jpg" },
+  ];
+
+  const n = items.length;
+  const sliceAng = 180 / n;
+
+  const svgCX = outerR;
+  const svgCY = innerR; // 🔥 changed (was outerR) → fixes top alignment
+
+  const svgW = outerR * 2;
+  const svgH = outerR;
+
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+
+  const polar = (r: number, deg: number) => ({
+    x: svgCX + r * Math.cos(toRad(deg)),
+    y: svgCY + r * Math.sin(toRad(deg)),
+  });
+
+  const slices = items.map((item, i) => {
+    const startDeg = -180 + i * sliceAng;
+    const endDeg   = -180 + (i + 1) * sliceAng;
+    const midDeg   = (startDeg + endDeg) / 2;
+
+    const o1 = polar(outerR, startDeg);
+    const o2 = polar(outerR, endDeg);
+    const i1 = polar(innerR, endDeg);
+    const i2 = polar(innerR, startDeg);
+
+    const path = [
+      `M ${o1.x} ${o1.y}`,
+      `A ${outerR} ${outerR} 0 0 1 ${o2.x} ${o2.y}`,
+      `L ${i1.x} ${i1.y}`,
+      `A ${innerR} ${innerR} 0 0 0 ${i2.x} ${i2.y}`,
+      "Z",
+    ].join(" ");
+
+    const labelR = (outerR + innerR) / 2;
+    const lp = polar(labelR, midDeg);
+    const clipId = `clip-${item.label.toLowerCase()}`;
+
+    return { ...item, path, lp, clipId };
+  });
+
+  return (
+    <svg
+      width={svgW}
+      height={svgH}
+      viewBox={`0 0 ${svgW} ${svgH}`}
+      style={{
+        position: "absolute",
+        top: 0, // 🔥 FIXED (was bottom)
+        left: "50%",
+        overflow: "visible",
+        opacity: pfpHovered ? 1 : 0,
+        transform: pfpHovered
+          ? "translateX(-50%) scaleY(1)"
+          : "translateX(-50%) scaleY(0.1)",
+        transformOrigin: "top center", // 🔥 animation from top
+        transition: "opacity 0.3s ease, transform 0.35s cubic-bezier(0.34,1.56,0.64,1)",
+        pointerEvents: pfpHovered ? "auto" : "none",
+        zIndex: 10,
+      }}
+    >
+      <defs>
+        {slices.map((s) => (
+          <clipPath key={s.clipId} id={s.clipId} clipPathUnits="userSpaceOnUse">
+            <path d={s.path} />
+          </clipPath>
+        ))}
+      </defs>
+
+      {slices.map((s) => {
+        const isHovered = hoveredSlice === s.label;
+        const imgH = svgCY + innerR;
+
+        return (
+          <g
+            key={s.label}
+            style={{ cursor: "pointer" }}
+            onClick={() => setRadialOpen(s.label)}
+            onMouseEnter={() => setHoveredSlice(s.label)}
+            onMouseLeave={() => setHoveredSlice(null)}
+          >
+            {/* Base */}
+            <path
+              d={s.path}
+              fill={dark ? "rgba(15,15,15,0.93)" : "rgba(245,245,240,0.93)"}
+              stroke={s.color + "88"}
+              strokeWidth="1.5"
+            />
+
+            {/* Image hover */}
+            <image
+              href={s.image}
+              x={0}
+              y={0}
+              width={svgW}
+              height={imgH}
+              preserveAspectRatio="xMidYMid slice"
+              clipPath={`url(#${s.clipId})`}
+              style={{
+                opacity: isHovered ? 1 : 0,
+                transition: "opacity 0.25s ease",
+              }}
+            />
+
+            {/* Color overlay */}
+            <path
+              d={s.path}
+              fill={s.color}
+              style={{
+                opacity: isHovered ? 0.35 : 0,
+                transition: "opacity 0.25s ease",
+                pointerEvents: "none",
+              }}
+            />
+
+            {/* Stroke */}
+            <path
+              d={s.path}
+              fill="none"
+              stroke={s.color + (isHovered ? "cc" : "88")}
+              strokeWidth={isHovered ? "2" : "1.5"}
+              style={{
+                transition: "stroke-width 0.2s ease, stroke 0.2s ease",
+                pointerEvents: "none",
+              }}
+            />
+
+            {/* Label */}
+            <text
+              x={s.lp.x}
+              y={s.lp.y - 5}
+              textAnchor="middle"
+              fontSize="11"
+              fontWeight="700"
+              fill={isHovered ? "#ffffff" : s.color}
+              style={{
+                pointerEvents: "none",
+                letterSpacing: "0.04em",
+                transition: "fill 0.2s ease",
+                filter: isHovered ? "drop-shadow(0 1px 3px rgba(0,0,0,0.7))" : "none",
+              }}
+            >
+              {s.label}
+            </text>
+
+            <text
+              x={s.lp.x}
+              y={s.lp.y + 9}
+              textAnchor="middle"
+              fontSize="8.5"
+              fill={
+                isHovered
+                  ? "rgba(255,255,255,0.85)"
+                  : dark
+                  ? "rgba(255,255,255,0.4)"
+                  : "rgba(0,0,0,0.38)"
+              }
+              style={{
+                pointerEvents: "none",
+                transition: "fill 0.2s ease",
+                filter: isHovered ? "drop-shadow(0 1px 2px rgba(0,0,0,0.7))" : "none",
+              }}
+            >
+              {s.caption}
+            </text>
+          </g>
+        );
+      })}
+    </svg>
+  );
+})()}
+
+          {/* Profile image — slightly bigger */}
+          <div style={{ position: "relative", width: 340, height: 340 }}>
+            {/* Default image */}
+            <img
+              src="/pfp.jpg"
+              alt="Mariel Inojales"
+              style={{
+                position: "absolute",
+                inset: 0,
+                width: 340,
+                height: 340,
+                borderRadius: "50%",
+                objectFit: "cover",
+                display: "block",
+                border: `2px solid ${pfpHovered ? t.borderHover : t.border}`,
+                boxShadow: pfpHovered
+                  ? dark
+                    ? "0 0 0 5px rgba(163,230,53,0.13), 0 24px 64px rgba(0,0,0,0.5)"
+                    : "0 0 0 5px rgba(163,230,53,0.18), 0 24px 48px rgba(0,0,0,0.18)"
+                  : "none",
+                opacity: pfpHovered ? 0 : 1,
+                transition: "opacity 0.4s ease, border-color 0.3s ease, box-shadow 0.3s ease",
+                cursor: "default",
+              }}
+            />
+            {/* Hover image — replace /pfp-hover.jpg with your second photo */}
+            <img
+              src="/pfp-hover.jpg"
+              alt="Mariel Inojales"
+              style={{
+                position: "absolute",
+                inset: 0,
+                width: 340,
+                height: 340,
+                borderRadius: "50%",
+                objectFit: "cover",
+                display: "block",
+                border: `2px solid ${t.borderHover}`,
+                boxShadow: dark
+                  ? "0 0 0 5px rgba(163,230,53,0.13), 0 24px 64px rgba(0,0,0,0.5)"
+                  : "0 0 0 5px rgba(163,230,53,0.18), 0 24px 48px rgba(0,0,0,0.18)",
+                opacity: pfpHovered ? 1 : 0,
+                transition: "opacity 0.4s ease",
+                cursor: "default",
+              }}
+            />
+          </div>
+
+          {/* Hover hint */}
+          <p
+            className="text-center text-[10px] mt-3 tracking-widest uppercase"
+            style={{
+              color: t.textFaint,
+              opacity: pfpHovered ? 0 : 0.7,
+              transition: "opacity 0.2s ease",
+            }}
+          >
+            hover me
+          </p>
+        </div>
       </section>
+
+
 
       {/* ── Tools ── */}
       <section id="tools" className="px-8 md:px-[192px] py-32" style={{ borderTop: `1px solid ${t.border}` }}>
-        <p className="text-xs uppercase tracking-widest mb-4" style={{ color: t.textFaint }}>04 — Tools</p>
+        <p className="text-xs uppercase tracking-widest mb-4" style={{ color: t.textFaint }}> Tools</p>
         <h2
           className="text-[clamp(2.5rem,6vw,5rem)] font-bold tracking-tight mb-4"
           style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: t.text }}
@@ -654,67 +901,6 @@ export default function Home() {
               <p className="text-xs leading-relaxed" style={{ color: t.textMuted }}>{tool.desc}</p>
             </div>
           ))}
-        </div>
-      </section>
-
-      {/* ── Contact ── */}
-      <section id="contact" className="px-8 md:px-[192px] py-32" style={{ borderTop: `1px solid ${t.border}` }}>
-        <p className="text-xs uppercase tracking-widest mb-4" style={{ color: t.textFaint }}>05 — Contact</p>
-        <h2
-          className="text-[clamp(2.5rem,6vw,5rem)] font-bold tracking-tight mb-4"
-          style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: t.text }}
-        >
-          Let&apos;s Connect
-        </h2>
-        <p className="text-sm max-w-md mb-12 leading-relaxed" style={{ color: t.textMuted }}>
-          Open to collaborations, internship opportunities, or just a friendly chat about tech and design.
-        </p>
-
-        <div className="flex gap-4 mb-12 items-end">
-          {[
-            { icon: <span className="text-base leading-none">✉</span>, label: "Email",  href: "mailto:mariel.inoj@gmail.com" },
-            { icon: <SiGithub size={16} />,                             label: "GitHub", href: "https://github.com/Marsinoj" },
-          ].map((item, i) => (
-            <a
-              key={i}
-              href={item.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex flex-col items-center gap-2"
-            >
-              <div
-                className="w-12 h-12 rounded-full flex items-center justify-center transition-all cursor-pointer hover:bg-gray-200"
-                style={{ border: `1px solid ${t.border}`, color: t.textMuted }}
-              >
-                {item.icon}
-              </div>
-              <span className="text-[10px] uppercase tracking-widest" style={{ color: t.textFaint }}>
-                {item.label}
-              </span>
-            </a>
-          ))}
-
-          {/* Contact me — circle button matching the icon row */}
-          <div className="flex flex-col items-center gap-2">
-            <button
-              onClick={() => setShowSocials(true)}
-              className="w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200"
-              style={{ border: `1px solid ${t.borderHover}`, color: t.textMuted }}
-              onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
-                e.currentTarget.style.backgroundColor = t.btnHoverBg;
-                e.currentTarget.style.color = t.btnHoverText;
-              }}
-              onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
-                e.currentTarget.style.backgroundColor = "transparent";
-                e.currentTarget.style.color = t.text;
-              }}
-            >
-              →
-            </button>
-            <span className="text-[10px] uppercase tracking-widest" style={{ color: t.textFaint }}>
-              Contact
-            </span>
-          </div>
         </div>
 
         {/* ── Footer ── */}
@@ -902,6 +1088,178 @@ export default function Home() {
                 </a>
               ))}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Radial Section Overlays ── */}
+      {radialOpen && (
+        <div
+          className="fixed inset-0 z-50 overflow-y-auto transition-colors duration-300"
+          style={{ backgroundColor: `${t.bg}ee`, color: t.text }}
+        >
+          <GridBg />
+
+          {/* Top bar */}
+          <div
+            className="sticky top-0 z-10 flex items-center justify-between px-8 md:px-[192px] py-5 backdrop-blur-xl"
+            style={{ borderBottom: `1px solid ${t.border}`, backgroundColor: `${t.bg}cc` }}
+          >
+            <button
+              onClick={() => setRadialOpen(null)}
+              className="flex items-center gap-2 text-sm rounded-full px-4 py-2 transition-colors"
+              style={{ border: `1px solid ${t.border}`, color: t.textMuted }}
+              onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.color = t.text; }}
+              onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.color = t.textMuted; }}
+            >
+              ← Back
+            </button>
+            <span className="text-xs uppercase tracking-widest" style={{ color: t.textFaint }}>
+              {radialOpen}
+            </span>
+          </div>
+
+          <div className="px-8 md:px-[192px] py-16">
+            <p className="text-xs uppercase tracking-widest mb-6" style={{ color: t.textFaint }}>{radialOpen}</p>
+            <h2
+              className="text-[clamp(1.8rem,4vw,3.5rem)] font-bold tracking-tight mb-10"
+              style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: t.text }}
+            >
+              {radialOpen}
+            </h2>
+
+            {/* About */}
+            {radialOpen === "About" && (
+              <div className="max-w-2xl space-y-6">
+                <div className="flex items-center gap-5 mb-8">
+                  <img src="/pfp.jpg" alt="Mariel" className="w-20 h-20 rounded-full object-cover flex-shrink-0" style={{ border: `1px solid ${t.border}` }} />
+                  <div>
+                    <p className="text-lg font-semibold" style={{ color: t.text }}>Mariel Inojales</p>
+                    <p className="text-sm" style={{ color: t.textMuted }}>IT Student · Holy Cross of Davao College</p>
+                    <span className="inline-flex items-center gap-1 text-[11px] mt-1 rounded-full px-2 py-0.5" style={{ background: "#E1F5EE", color: "#0F6E56", border: "1px solid #1D9E75" }}>
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#1D9E75] inline-block animate-pulse" /> Available for work
+                    </span>
+                  </div>
+                </div>
+                {[
+                  { label: "Who I am", text: "A passionate IT student and frontend developer based in Davao, Philippines. I love building clean, responsive, and data-driven web applications that actually make sense to users." },
+                  { label: "What I do", text: "I turn ideas into interfaces — from designing layouts to writing the code that makes them work. I'm especially drawn to the intersection of good design and solid engineering." },
+                  { label: "Where I'm headed", text: "Currently leveling up in React and Next.js, exploring full-stack development, and looking for opportunities to build real products with real impact." },
+                ].map((item) => (
+                  <div key={item.label} className="rounded-2xl p-6" style={{ backgroundColor: t.bgCard, border: `1px solid ${t.border}` }}>
+                    <p className="text-xs uppercase tracking-widest mb-2" style={{ color: t.textFaint }}>{item.label}</p>
+                    <p className="text-sm leading-relaxed" style={{ color: t.textMuted }}>{item.text}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Certificates */}
+            {radialOpen === "Certificates" && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {certificatesData.map((cert) => (
+                  <button
+                    key={cert.id}
+                    onClick={() => { setRadialOpen(null); setSelectedCert(cert); }}
+                    className="rounded-2xl overflow-hidden text-left transition-all duration-200"
+                    style={{ backgroundColor: t.bgCard, border: `1px solid ${t.border}` }}
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = t.borderHover; e.currentTarget.style.transform = "translateY(-3px)"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = t.border; e.currentTarget.style.transform = "translateY(0)"; }}
+                  >
+                    <div style={{ height: 160, overflow: "hidden", background: t.bgCard }}>
+                      <img src={cert.image} alt={cert.title} className="w-full h-full object-cover" />
+                    </div>
+                    <div className="p-4">
+                      <p className="text-xs font-medium leading-snug mb-1" style={{ color: t.text }}>{cert.title}</p>
+                      <p className="text-[11px]" style={{ color: issuerColor(cert.issuer) }}>{cert.issuer}</p>
+                      <p className="text-[11px] mt-0.5" style={{ color: t.textFaint }}>{cert.date}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Projects */}
+            {radialOpen === "Projects" && (
+              <div
+                className="flex items-center justify-center rounded-2xl h-64 text-sm"
+                style={{ border: `1px solid ${t.border}`, color: t.textFaint }}
+              >
+                Projects coming soon ✦
+              </div>
+            )}
+
+            {/* Contact */}
+            {radialOpen === "Contact" && (
+              <div className="flex flex-col items-center gap-4 w-full max-w-sm mx-auto mt-8">
+
+                {/* Toast */}
+                {emailCopied && (
+                  <div
+                    className="toast-enter fixed bottom-8 left-1/2 -translate-x-1/2 z-[999] flex items-center gap-2 px-5 py-3 rounded-full text-sm font-medium shadow-xl"
+                    style={{
+                      backgroundColor: dark ? "#1a1a1a" : "#ffffff",
+                      border: `1px solid #a3e635`,
+                      color: "#a3e635",
+                      boxShadow: "0 8px 32px rgba(163,230,53,0.15)",
+                    }}
+                  >
+                    <span style={{ fontSize: 15 }}>✓</span>
+                    Email copied to clipboard!
+                  </div>
+                )}
+
+                <img src="/pfp.jpg" alt="Profile" className="w-20 h-20 rounded-full object-cover" />
+                <h3 className="text-lg font-semibold" style={{ color: t.text }}>Mariel Inojales</h3>
+                <p className="text-sm" style={{ color: t.textMuted }}>connect with me.</p>
+                <div className="w-full flex flex-col gap-3 mt-4">
+
+                  {socialLinks.map((item, i) =>
+                    item.isEmail ? (
+                      <button
+                        key={i}
+                        onClick={() => handleCopyEmail(item.href)}
+                        className="w-full flex items-center justify-center gap-2 text-sm py-3 rounded-lg transition-all"
+                        style={{ border: `1px solid ${t.border}`, color: t.text, backgroundColor: "transparent" }}
+                        onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
+                          e.currentTarget.style.backgroundColor = t.btnHoverBg;
+                          e.currentTarget.style.color = t.btnHoverText;
+                        }}
+                        onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
+                          e.currentTarget.style.backgroundColor = "transparent";
+                          e.currentTarget.style.color = t.text;
+                        }}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                        </svg>
+                        {emailCopied ? "Copied! ✓" : item.href}
+                      </button>
+                    ) : (
+                      <a
+                        key={i}
+                        href={item.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full flex items-center justify-center gap-2 text-sm py-3 rounded-lg transition-all"
+                        style={{ border: `1px solid ${t.border}`, color: t.text }}
+                        onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => {
+                          e.currentTarget.style.backgroundColor = t.btnHoverBg;
+                          e.currentTarget.style.color = t.btnHoverText;
+                        }}
+                        onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => {
+                          e.currentTarget.style.backgroundColor = "transparent";
+                          e.currentTarget.style.color = t.text;
+                        }}
+                      >
+                        {item.icon}
+                        {item.label}
+                      </a>
+                    )
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
