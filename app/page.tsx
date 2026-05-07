@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import GitLoader from "@/components/GitLoader";
 import {
   SiHtml5,
@@ -11,7 +11,10 @@ import {
   SiMysql,
   SiNodedotjs,
   SiGithub,
-  SiTelegram
+  SiTelegram,
+  SiDiscord,
+  SiX,
+  SiInstagram
 } from "react-icons/si";
 import { FaLinkedin, FaFacebook } from "react-icons/fa";
 import { supabase } from "@/lib/supabase";
@@ -51,6 +54,8 @@ export default function Home() {
   const [radialOpen, setRadialOpen] = useState<string | null>(null);
   const [hoveredSlice, setHoveredSlice] = useState<string | null>(null);
   const [emailCopied, setEmailCopied] = useState(false);
+  const [activeStep, setActiveStep] = useState(0);
+  const stepRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const YOUR_EMAIL = "marieljinojales@gmail.com"; // ← change this to your email
 
@@ -64,6 +69,35 @@ export default function Home() {
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
   }, [dark]);
+
+  useEffect(() => {
+    if (radialOpen !== "About") return;
+
+    const handleScroll = () => {
+      const viewportMid = window.innerHeight / 2;
+      let closestIndex = 0;
+      let closestDist = Infinity;
+
+      stepRefs.current.forEach((el, i) => {
+        if (!el) return;
+        const rect = el.getBoundingClientRect();
+        const elMid = rect.top + rect.height / 2;
+        const dist = Math.abs(elMid - viewportMid);
+        if (dist < closestDist) {
+          closestDist = dist;
+          closestIndex = i;
+        }
+      });
+
+      setActiveStep(closestIndex);
+    };
+
+    // Run once immediately so initial state is correct
+    handleScroll();
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [radialOpen]);
   useEffect(() => {
   supabase
     .from("social_links")
@@ -422,7 +456,7 @@ export default function Home() {
           style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: t.text }}
         >
           Turning <br />Ideas<br />
-          <span style={{ color: dark ? "rgba(255,255,255,0.85)" : "rgba(0,0,0,0.55)" }}>
+          <span style={{ color: dark ? "rgba(255,255,255,0.85)" : "#000000" }}>
             Into <br />Interfaces
           </span>
         </h1>
@@ -434,21 +468,6 @@ export default function Home() {
             based in Davao, Philippines. Passionate about building responsive, data-driven web applications.
           </p>
           <div className="flex gap-3 flex-shrink-0">
-            <button
-              onClick={() => window.open("/Inojales_Resume.pdf", "_blank")}
-              className="flex items-center gap-2 text-sm rounded-full px-5 py-2.5 transition-all duration-200"
-              style={{ border: `1px solid ${t.borderHover}`, color: t.text }}
-              onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
-                e.currentTarget.style.backgroundColor = t.btnHoverBg;
-                e.currentTarget.style.color = t.btnHoverText;
-              }}
-              onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
-                e.currentTarget.style.backgroundColor = "transparent";
-                e.currentTarget.style.color = t.text;
-              }}
-            >
-              Resume &#x2197;
-            </button>
             <button
               onClick={() => setRadialOpen("Contact")}
               className="flex items-center gap-2 text-sm rounded-full px-5 py-2.5 transition-all duration-200"
@@ -487,6 +506,9 @@ export default function Home() {
             style={{ position: "relative", width: 140, height: 140 }}
             onMouseEnter={() => setPfpHovered(true)}
             onMouseLeave={() => setPfpHovered(false)}
+            onTouchStart={() => setPfpHovered(true)}
+            onTouchEnd={() => setPfpHovered(false)}
+            onTouchCancel={() => setPfpHovered(false)}
           >
             <img
               src="/pfp.jpg"
@@ -546,213 +568,89 @@ export default function Home() {
           </div>
         </div>
 
-        {/* ── PFP Radial Menu ── */}
+        {/* ── PFP Floating Cards Menu ── */}
         <div
-          className="hidden md:block absolute bottom-24 right-[192px]"
-          style={{ position: "absolute", paddingTop: 0 }}
+          className="hidden md:flex absolute bottom-24 right-[192px] items-center justify-center"
+          style={{ position: "absolute", width: 680, height: 680 }}
           onMouseEnter={() => setPfpHovered(true)}
           onMouseLeave={() => { setPfpHovered(false); setHoveredSlice(null); }}
         >
-          {/* Half-pie radial menu — FIXED (top-aligned) */}
-{(() => {
-  const size = 340;
-  const pfpR = size / 2;      // 170
-  const outerR = pfpR + 100;  // 270
-  const innerR = pfpR;        // 170
+          {/* Floating GIF cards — top, right, bottom, left */}
+          {([
+            { label: "About",        color: "#a3e635", caption: "Who I am",  image: "/About.gif",   pos: "top"    },
+            { label: "Certificates", color: "#22d3ee", caption: "My certs",  image: "/Certificates.gif",   pos: "right"  },
+            { label: "Projects",     color: "#f97316", caption: "My work",   image: "/Projects.gif",pos: "bottom" },
+            { label: "Contact",      color: "#e879f9", caption: "Reach me",  image: "/Contact.gif", pos: "left"   },
+          ] as { label: string; color: string; caption: string; image: string; pos: string }[]).map((item) => {
+            const isHov = hoveredSlice === item.label;
+            const posStyle: React.CSSProperties =
+              item.pos === "top"    ? { top: 0,    left: "50%", transform: "translateX(-50%)" } :
+              item.pos === "right"  ? { right: 0,  top:  "50%", transform: "translateY(-50%)" } :
+              item.pos === "bottom" ? { bottom: 0, left: "50%", transform: "translateX(-50%)" } :
+                                     { left: 0,   top:  "50%", transform: "translateY(-50%)" };
+            return (
+              <button
+                key={item.label}
+                onClick={() => setRadialOpen(item.label)}
+                onMouseEnter={() => setHoveredSlice(item.label)}
+                onMouseLeave={() => setHoveredSlice(null)}
+                style={{
+                  position: "absolute",
+                  ...posStyle,
+                  width: 170,
+                  height: 170,
+                  borderRadius: 22,
+                  overflow: "hidden",
+                  border: `1.5px solid ${isHov ? item.color : item.color + "55"}`,
+                  boxShadow: isHov ? `0 0 18px ${item.color}55` : "none",
+                  opacity: pfpHovered ? 1 : 0,
+                  transform: `${posStyle.transform ?? ""} ${
+                    !pfpHovered
+                      ? item.pos === "top"    ? "translateY(-10px)"
+                      : item.pos === "bottom" ? "translateY(10px)"
+                      : item.pos === "right"  ? "translateX(10px)"
+                      :                         "translateX(-10px)"
+                      : ""
+                  }`,
+                  transition: "opacity 0.3s ease, transform 0.35s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s ease, border-color 0.2s ease",
+                  cursor: "pointer",
+                  padding: 0,
+                  background: "none",
+                }}
+              >
+                {/* GIF fills the card */}
+                <img
+                  src={item.image}
+                  alt={item.label}
+                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                />
+                {/* Label overlay at bottom */}
+                <div style={{
+                  position: "absolute", bottom: 0, left: 0, right: 0,
+                  padding: "6px 8px",
+                  background: isHov ? `${item.color}dd` : "rgba(0,0,0,0.55)",
+                  transition: "background 0.2s ease",
+                }}>
+                  <p style={{ margin: 0, fontSize: 10, fontWeight: 700, color: isHov ? "#000" : "#fff", letterSpacing: "0.05em" }}>
+                    {item.label}
+                  </p>
+                  <p style={{ margin: 0, fontSize: 9, color: isHov ? "rgba(0,0,0,0.7)" : "rgba(255,255,255,0.65)" }}>
+                    {item.caption}
+                  </p>
+                </div>
+              </button>
+            );
+          })}
 
-  const items = [
-    { label: "About",        color: "#a3e635", caption: "Who I am",  image: "/pfp.jpg" },
-    { label: "Certificates", color: "#22d3ee", caption: "My certs",  image: "/Certificate1.png" },
-    { label: "Projects",     color: "#f97316", caption: "My work",   image: "/pfp.jpg" },
-    { label: "Contact",      color: "#e879f9", caption: "Reach me",  image: "/pfp.jpg" },
-  ];
-
-  const n = items.length;
-  const sliceAng = 180 / n;
-
-  const svgCX = outerR;
-  const svgCY = innerR; // 🔥 changed (was outerR) → fixes top alignment
-
-  const svgW = outerR * 2;
-  const svgH = outerR;
-
-  const toRad = (deg: number) => (deg * Math.PI) / 180;
-
-  const polar = (r: number, deg: number) => ({
-    x: svgCX + r * Math.cos(toRad(deg)),
-    y: svgCY + r * Math.sin(toRad(deg)),
-  });
-
-  const slices = items.map((item, i) => {
-    const startDeg = -180 + i * sliceAng;
-    const endDeg   = -180 + (i + 1) * sliceAng;
-    const midDeg   = (startDeg + endDeg) / 2;
-
-    const o1 = polar(outerR, startDeg);
-    const o2 = polar(outerR, endDeg);
-    const i1 = polar(innerR, endDeg);
-    const i2 = polar(innerR, startDeg);
-
-    const path = [
-      `M ${o1.x} ${o1.y}`,
-      `A ${outerR} ${outerR} 0 0 1 ${o2.x} ${o2.y}`,
-      `L ${i1.x} ${i1.y}`,
-      `A ${innerR} ${innerR} 0 0 0 ${i2.x} ${i2.y}`,
-      "Z",
-    ].join(" ");
-
-    const labelR = (outerR + innerR) / 2;
-    const lp = polar(labelR, midDeg);
-    const clipId = `clip-${item.label.toLowerCase()}`;
-
-    return { ...item, path, lp, clipId };
-  });
-
-  return (
-    <svg
-      width={svgW}
-      height={svgH}
-      viewBox={`0 0 ${svgW} ${svgH}`}
-      style={{
-        position: "absolute",
-        top: 0, // 🔥 FIXED (was bottom)
-        left: "50%",
-        overflow: "visible",
-        opacity: pfpHovered ? 1 : 0,
-        transform: pfpHovered
-          ? "translateX(-50%) scaleY(1)"
-          : "translateX(-50%) scaleY(0.1)",
-        transformOrigin: "top center", // 🔥 animation from top
-        transition: "opacity 0.3s ease, transform 0.35s cubic-bezier(0.34,1.56,0.64,1)",
-        pointerEvents: pfpHovered ? "auto" : "none",
-        zIndex: 10,
-      }}
-    >
-      <defs>
-        {slices.map((s) => (
-          <clipPath key={s.clipId} id={s.clipId} clipPathUnits="userSpaceOnUse">
-            <path d={s.path} />
-          </clipPath>
-        ))}
-      </defs>
-
-      {slices.map((s) => {
-        const isHovered = hoveredSlice === s.label;
-        const imgH = svgCY + innerR;
-
-        return (
-          <g
-            key={s.label}
-            style={{ cursor: "pointer" }}
-            onClick={() => setRadialOpen(s.label)}
-            onMouseEnter={() => setHoveredSlice(s.label)}
-            onMouseLeave={() => setHoveredSlice(null)}
-          >
-            {/* Base */}
-            <path
-              d={s.path}
-              fill={dark ? "rgba(15,15,15,0.93)" : "rgba(245,245,240,0.93)"}
-              stroke={s.color + "88"}
-              strokeWidth="1.5"
-            />
-
-            {/* Image hover */}
-            <image
-              href={s.image}
-              x={0}
-              y={0}
-              width={svgW}
-              height={imgH}
-              preserveAspectRatio="xMidYMid slice"
-              clipPath={`url(#${s.clipId})`}
-              style={{
-                opacity: isHovered ? 1 : 0,
-                transition: "opacity 0.25s ease",
-              }}
-            />
-
-            {/* Color overlay */}
-            <path
-              d={s.path}
-              fill={s.color}
-              style={{
-                opacity: isHovered ? 0.35 : 0,
-                transition: "opacity 0.25s ease",
-                pointerEvents: "none",
-              }}
-            />
-
-            {/* Stroke */}
-            <path
-              d={s.path}
-              fill="none"
-              stroke={s.color + (isHovered ? "cc" : "88")}
-              strokeWidth={isHovered ? "2" : "1.5"}
-              style={{
-                transition: "stroke-width 0.2s ease, stroke 0.2s ease",
-                pointerEvents: "none",
-              }}
-            />
-
-            {/* Label */}
-            <text
-              x={s.lp.x}
-              y={s.lp.y - 5}
-              textAnchor="middle"
-              fontSize="11"
-              fontWeight="700"
-              fill={isHovered ? "#ffffff" : s.color}
-              style={{
-                pointerEvents: "none",
-                letterSpacing: "0.04em",
-                transition: "fill 0.2s ease",
-                filter: isHovered ? "drop-shadow(0 1px 3px rgba(0,0,0,0.7))" : "none",
-              }}
-            >
-              {s.label}
-            </text>
-
-            <text
-              x={s.lp.x}
-              y={s.lp.y + 9}
-              textAnchor="middle"
-              fontSize="8.5"
-              fill={
-                isHovered
-                  ? "rgba(255,255,255,0.85)"
-                  : dark
-                  ? "rgba(255,255,255,0.4)"
-                  : "rgba(0,0,0,0.38)"
-              }
-              style={{
-                pointerEvents: "none",
-                transition: "fill 0.2s ease",
-                filter: isHovered ? "drop-shadow(0 1px 2px rgba(0,0,0,0.7))" : "none",
-              }}
-            >
-              {s.caption}
-            </text>
-          </g>
-        );
-      })}
-    </svg>
-  );
-})()}
-
-          {/* Profile image — slightly bigger */}
-          <div style={{ position: "relative", width: 340, height: 340 }}>
-            {/* Default image */}
+          {/* Centre: Profile image with hover swap */}
+          <div style={{ position: "relative", width: 340, height: 340, zIndex: 1 }}>
             <img
               src="/pfp.jpg"
               alt="Mariel Inojales"
               style={{
-                position: "absolute",
-                inset: 0,
-                width: 340,
-                height: 340,
-                borderRadius: "50%",
-                objectFit: "cover",
-                display: "block",
+                position: "absolute", inset: 0,
+                width: 340, height: 340,
+                borderRadius: "50%", objectFit: "cover",
                 border: `2px solid ${pfpHovered ? t.borderHover : t.border}`,
                 boxShadow: pfpHovered
                   ? dark
@@ -761,39 +659,34 @@ export default function Home() {
                   : "none",
                 opacity: pfpHovered ? 0 : 1,
                 transition: "opacity 0.4s ease, border-color 0.3s ease, box-shadow 0.3s ease",
-                cursor: "default",
               }}
             />
-            {/* Hover image — replace /pfp-hover.jpg with your second photo */}
             <img
               src="/pfp-hover.jpg"
               alt="Mariel Inojales"
               style={{
-                position: "absolute",
-                inset: 0,
-                width: 340,
-                height: 340,
-                borderRadius: "50%",
-                objectFit: "cover",
-                display: "block",
+                position: "absolute", inset: 0,
+                width: 340, height: 340,
+                borderRadius: "50%", objectFit: "cover",
                 border: `2px solid ${t.borderHover}`,
                 boxShadow: dark
                   ? "0 0 0 5px rgba(163,230,53,0.13), 0 24px 64px rgba(0,0,0,0.5)"
                   : "0 0 0 5px rgba(163,230,53,0.18), 0 24px 48px rgba(0,0,0,0.18)",
                 opacity: pfpHovered ? 1 : 0,
                 transition: "opacity 0.4s ease",
-                cursor: "default",
               }}
             />
           </div>
 
           {/* Hover hint */}
           <p
-            className="text-center text-[10px] mt-3 tracking-widest uppercase"
+            className="absolute text-[10px] tracking-widest uppercase"
             style={{
+              bottom: -28, left: "50%", transform: "translateX(-50%)",
               color: t.textFaint,
               opacity: pfpHovered ? 0 : 0.7,
               transition: "opacity 0.2s ease",
+              whiteSpace: "nowrap",
             }}
           >
             hover me
@@ -1130,8 +1023,10 @@ export default function Home() {
 
             {/* About */}
             {radialOpen === "About" && (
-              <div className="max-w-2xl space-y-6">
-                <div className="flex items-center gap-5 mb-8">
+              <div className="max-w-2xl space-y-10">
+
+                {/* Profile header */}
+                <div className="flex items-center gap-5">
                   <img src="/pfp.jpg" alt="Mariel" className="w-20 h-20 rounded-full object-cover flex-shrink-0" style={{ border: `1px solid ${t.border}` }} />
                   <div>
                     <p className="text-lg font-semibold" style={{ color: t.text }}>Mariel Inojales</p>
@@ -1141,16 +1036,162 @@ export default function Home() {
                     </span>
                   </div>
                 </div>
-                {[
-                  { label: "Who I am", text: "A passionate IT student and frontend developer based in Davao, Philippines. I love building clean, responsive, and data-driven web applications that actually make sense to users." },
-                  { label: "What I do", text: "I turn ideas into interfaces — from designing layouts to writing the code that makes them work. I'm especially drawn to the intersection of good design and solid engineering." },
-                  { label: "Where I'm headed", text: "Currently leveling up in React and Next.js, exploring full-stack development, and looking for opportunities to build real products with real impact." },
-                ].map((item) => (
-                  <div key={item.label} className="rounded-2xl p-6" style={{ backgroundColor: t.bgCard, border: `1px solid ${t.border}` }}>
-                    <p className="text-xs uppercase tracking-widest mb-2" style={{ color: t.textFaint }}>{item.label}</p>
-                    <p className="text-sm leading-relaxed" style={{ color: t.textMuted }}>{item.text}</p>
+
+
+
+                {/* Journey Timeline */}
+                <div>
+                  <p className="text-sm uppercase tracking-widest mb-8" style={{ color: t.textFaint }}>My Journey</p>
+                  <div className="relative">
+
+                    {/* Aceternity-style SVG beam rail */}
+                    <svg
+                      className="absolute left-0 top-0 pointer-events-none"
+                      width="20"
+                      height="100%"
+                      viewBox="0 0 20 900"
+                      preserveAspectRatio="none"
+                      style={{ overflow: "visible" }}
+                    >
+                      <defs>
+                        <linearGradient id="beamGradient" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1="0" y2="160">
+                          <stop offset="0"    stopColor={dark ? "#ffffff" : "#000000"} stopOpacity="0" />
+                          <stop offset="0.3"  stopColor={dark ? "#ffffff" : "#000000"} stopOpacity="0.8" />
+                          <stop offset="0.7"  stopColor={dark ? "#ffffff" : "#000000"} stopOpacity="0.8" />
+                          <stop offset="1"    stopColor={dark ? "#ffffff" : "#000000"} stopOpacity="0" />
+                        </linearGradient>
+                      </defs>
+
+                      {/* Static faint rail */}
+                      <path
+                        d="M 10 0 V 900"
+                        fill="none"
+                        stroke={dark ? "#ffffff" : "#000000"}
+                        strokeOpacity="0.08"
+                        strokeWidth="1.25"
+                      />
+
+                      {/* Beam — travels via strokeDashoffset on scroll */}
+                      <path
+                        d="M 10 0 V 900"
+                        fill="none"
+                        stroke="url(#beamGradient)"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeDasharray="160 900"
+                        strokeDashoffset={-(activeStep / 5) * 740}
+                        className="motion-reduce:hidden"
+                        style={{ transition: "stroke-dashoffset 0.8s cubic-bezier(0.4,0,0.2,1)" }}
+                      />
+                    </svg>
+
+                    <div className="space-y-12 pl-10">
+                      {([
+                        {
+                          year: "Junior High",
+                          title: "The First Line of Code",
+                          text: "Before IT was even a career plan, I was already writing HTML and CSS in junior high school. Something about making things appear on a screen just clicked — and that curiosity never left.",
+                          badges: ["HTML", "CSS"],
+                          detail: "💡 Googling 'how to make a website' before I even knew what a developer was.",
+                        },
+                        {
+                          year: "Senior High · Dec. 2019",
+                          title: "TVL – CSS NC2 Passer",
+                          text: "Passed the Technical-Vocational-Livelihood track with a Computer Systems Servicing NC2 certification — an early proof that the tech path was always the right one.",
+                          badges: ["NC2 Certified", "Computer Systems Servicing", "TVL Track"],
+                          detail: "🏅 NC2 certified in Computer Systems Servicing — hardware, networking, and software all in one.",
+                        },
+                        {
+                          year: "2022",
+                          title: "Enrolled at HCDC",
+                          text: "I chose to pursue IT at Holy Cross of Davao College — not by accident, but because I already knew this was the field for me. Formal training gave structure to the curiosity I'd been carrying for years.",
+                          badges: ["BS Information Technology", "HCDC", "Davao"],
+                          detail: "🏫 Holy Cross of Davao College, Davao City — where the real grind began.",
+                        },
+                        {
+                          year: "2023–2024",
+                          title: "Leveling Up",
+                          text: "Started going beyond the classroom — picking up React, Next.js, and Tailwind, earning certificates from Udemy and Simplilearn, and building real projects that pushed me further than any assignment could.",
+                          badges: ["React", "Next.js", "Tailwind CSS", "Supabase", "Udemy", "Simplilearn"],
+                          detail: "📜 Earned multiple certificates while juggling school — learning doesn't stop at the classroom door.",
+                        },
+                        {
+                          year: "2025",
+                          title: "Soon-to-be Graduate",
+                          text: "Almost at the finish line at HCDC — but this isn't the end of the journey, it's the beginning. Looking for opportunities to build real products, grow as a developer, and make a real impact.",
+                          badges: ["Final Year", "Capstone", "Available for Work"],
+                          detail: "🎓 Final year at HCDC — capstone, thesis, and a portfolio that tells the whole story.",
+                        },
+                        {
+                          year: "2026 →",
+                          title: "The Road to Full Stack",
+                          text: "The goal is clear — become a full stack developer. Every day is another rep: sharpening skills, building projects, and pushing further into both frontend and backend.",
+                          badges: ["Full Stack", "Node.js", "PHP", "MySQL", "Open to Work"],
+                          detail: "🚀 Looking for a job to turn that practice into real-world experience.",
+                        },
+                      ] as { year: string; title: string; text: string; badges: string[]; detail: string }[]).map((step, i) => (
+                        <div
+                          key={step.year}
+                          className="relative transition-all duration-500"
+                          ref={(el) => { stepRefs.current[i] = el; }}
+                          style={{
+                            opacity: activeStep === i ? 1 : 0.35,
+                            transform: activeStep === i ? "translateX(6px)" : "translateX(0)",
+                          }}
+                        >
+                          {/* Dot */}
+                          <div
+                            className="absolute -left-10 top-1.5 w-5 h-5 rounded-full border-2 flex-shrink-0 transition-all duration-500"
+                            style={{
+                              backgroundColor: activeStep === i ? (dark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.1)") : "transparent",
+                              borderColor: activeStep === i ? t.borderHover : t.border,
+                              boxShadow: activeStep === i ? (dark ? "0 0 10px rgba(255,255,255,0.2)" : "0 0 10px rgba(0,0,0,0.15)") : "none",
+                            }}
+                          />
+
+                          {/* Year */}
+                          <p className="text-sm uppercase tracking-widest font-bold mb-2" style={{ color: t.textMuted }}>{step.year}</p>
+
+                          {/* Title */}
+                          <p className="text-xl font-bold mb-2" style={{ color: t.text }}>{step.title}</p>
+
+                          {/* Text */}
+                          <p className="text-sm leading-relaxed mb-3" style={{ color: t.textMuted }}>{step.text}</p>
+
+                          {/* Badges */}
+                          <div className="flex flex-wrap gap-1.5 mb-3">
+                            {step.badges.map((badge) => (
+                              <span
+                                key={badge}
+                                className="text-[10px] px-2 py-0.5 rounded-full font-medium"
+                                style={{
+                                  backgroundColor: dark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)",
+                                  border: `1px solid ${t.border}`,
+                                  color: t.textMuted,
+                                }}
+                              >
+                                {badge}
+                              </span>
+                            ))}
+                          </div>
+
+                          {/* Detail */}
+                          <p
+                            className="text-[11px] leading-relaxed rounded-xl px-3 py-2"
+                            style={{
+                              color: t.textFaint,
+                              backgroundColor: dark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.03)",
+                              border: `1px dashed ${t.border}`,
+                            }}
+                          >
+                            {step.detail}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                ))}
+                </div>
+
               </div>
             )}
 
