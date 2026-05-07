@@ -56,6 +56,8 @@ export default function Home() {
   const [emailCopied, setEmailCopied] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
   const stepRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const isTouchRef = useRef(false);
+  const mobilePfpRef = useRef<HTMLDivElement | null>(null);
 
   const YOUR_EMAIL = "marieljinojales@gmail.com"; // ← change this to your email
 
@@ -121,6 +123,22 @@ export default function Home() {
       );
     });
 }, []);
+
+  // Native touch listener — bypasses React's passive event restrictions on real phones
+  useEffect(() => {
+    const el = mobilePfpRef.current;
+    if (!el) return;
+    const onStart = (e: TouchEvent) => { e.preventDefault(); setPfpHovered(true); };
+    const onEnd   = (e: TouchEvent) => { e.preventDefault(); setPfpHovered(false); };
+    el.addEventListener("touchstart",  onStart,  { passive: false });
+    el.addEventListener("touchend",    onEnd,    { passive: false });
+    el.addEventListener("touchcancel", onEnd,    { passive: false });
+    return () => {
+      el.removeEventListener("touchstart",  onStart);
+      el.removeEventListener("touchend",    onEnd);
+      el.removeEventListener("touchcancel", onEnd);
+    };
+  }, []);
 
   const certificatesData: Certificate[] = [
     { id: 6, title: "Introduction to Computer Networking", issuer: "Simplilearn", date: "April 6, 2026", image: "/Certificate6.png" },
@@ -447,7 +465,7 @@ export default function Home() {
             className="inline-flex items-center gap-2 text-xs rounded-full px-4 py-1.5"
             style={{ border: `1px solid ${t.border}`, color: t.textMuted }}
           >
-            <span className="text-lime-400">&#x2736;</span> IT Student &#xB7; Holy Cross of Davao College &#x2197;
+            <span className="text-lime-400">&#x2736;</span> Student &#xB7; Holy Cross of Davao College &#x2197;
           </span>
         </div>
 
@@ -503,12 +521,10 @@ export default function Home() {
         <div className="flex md:hidden flex-col items-center gap-6 mt-14">
           {/* Profile photo */}
           <div
-            style={{ position: "relative", width: 140, height: 140 }}
+            ref={mobilePfpRef}
+            style={{ position: "relative", width: 140, height: 140, touchAction: "none", cursor: "pointer" }}
             onMouseEnter={() => setPfpHovered(true)}
             onMouseLeave={() => setPfpHovered(false)}
-            onTouchStart={() => setPfpHovered(true)}
-            onTouchEnd={() => setPfpHovered(false)}
-            onTouchCancel={() => setPfpHovered(false)}
           >
             <img
               src="/pfp.jpg"
@@ -520,6 +536,9 @@ export default function Home() {
                 border: `2px solid ${t.border}`,
                 opacity: pfpHovered ? 0 : 1,
                 transition: "opacity 0.4s ease",
+                pointerEvents: "none",
+                userSelect: "none",
+                WebkitUserSelect: "none",
               }}
             />
             <img
@@ -532,6 +551,9 @@ export default function Home() {
                 border: `2px solid ${t.borderHover}`,
                 opacity: pfpHovered ? 1 : 0,
                 transition: "opacity 0.4s ease",
+                pointerEvents: "none",
+                userSelect: "none",
+                WebkitUserSelect: "none",
               }}
             />
           </div>
