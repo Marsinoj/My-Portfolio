@@ -72,33 +72,88 @@ export default function Home() {
     document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
   }, [dark]);
 
+  const timelineRef = useRef<HTMLDivElement | null>(null);
+  const overlayRef = useRef<HTMLDivElement | null>(null);
+  const [scrollProgress, setScrollProgress] = useState(0);
+
   useEffect(() => {
     if (radialOpen !== "About") return;
 
-    const handleScroll = () => {
-      const viewportMid = window.innerHeight / 2;
-      let closestIndex = 0;
-      let closestDist = Infinity;
+    let rafId: number;
+    let cleanup: (() => void) | undefined;
 
-      stepRefs.current.forEach((el, i) => {
-        if (!el) return;
-        const rect = el.getBoundingClientRect();
-        const elMid = rect.top + rect.height / 2;
-        const dist = Math.abs(elMid - viewportMid);
-        if (dist < closestDist) {
-          closestDist = dist;
-          closestIndex = i;
+    const attach = () => {
+      const scroller = overlayRef.current;
+      if (!scroller) return;
+
+      let targetProgress = 0;
+      let currentProgress = 0;
+
+      const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+
+      const tick = () => {
+        // Smooth lerp toward target
+        currentProgress = lerp(currentProgress, targetProgress, 0.1);
+        if (Math.abs(currentProgress - targetProgress) > 0.0005) {
+          setScrollProgress(currentProgress);
+          rafId = requestAnimationFrame(tick);
+        } else {
+          currentProgress = targetProgress;
+          setScrollProgress(currentProgress);
         }
-      });
+      };
 
-      setActiveStep(closestIndex);
+      const handleScroll = () => {
+        // Active step — find which step's top is closest to 40% down the viewport
+        const triggerY = scroller.scrollTop + scroller.clientHeight * 0.4;
+        let closestIndex = 0;
+        let closestDist = Infinity;
+        stepRefs.current.forEach((el, i) => {
+          if (!el) return;
+          // offsetTop walks up to find position relative to scroller
+          let top = 0;
+          let node: HTMLElement | null = el;
+          while (node && node !== scroller) {
+            top += node.offsetTop;
+            node = node.offsetParent as HTMLElement | null;
+          }
+          const dist = Math.abs(top - triggerY);
+          if (dist < closestDist) { closestDist = dist; closestIndex = i; }
+        });
+        setActiveStep(closestIndex);
+
+        // Progress — how far through the timeline container we've scrolled
+        if (timelineRef.current) {
+          let tlTop = 0;
+          let node: HTMLElement | null = timelineRef.current;
+          while (node && node !== scroller) {
+            tlTop += node.offsetTop;
+            node = node.offsetParent as HTMLElement | null;
+          }
+          const tlHeight = timelineRef.current.offsetHeight;
+          const scrolled = scroller.scrollTop - tlTop;
+          const scrollable = tlHeight - scroller.clientHeight * 0.5;
+          targetProgress = Math.min(1, Math.max(0, scrollable > 0 ? scrolled / scrollable : 0));
+
+          cancelAnimationFrame(rafId);
+          rafId = requestAnimationFrame(tick);
+        }
+      };
+
+      handleScroll();
+      scroller.addEventListener("scroll", handleScroll, { passive: true });
+      cleanup = () => {
+        scroller.removeEventListener("scroll", handleScroll);
+        cancelAnimationFrame(rafId);
+      };
     };
 
-    // Run once immediately so initial state is correct
-    handleScroll();
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    const timer = setTimeout(attach, 80);
+    return () => {
+      clearTimeout(timer);
+      cleanup?.();
+      cancelAnimationFrame(rafId);
+    };
   }, [radialOpen]);
   useEffect(() => {
   supabase
@@ -124,20 +179,10 @@ export default function Home() {
     });
 }, []);
 
-  // Native touch listener — bypasses React's passive event restrictions on real phones
+  // Touch listeners handled by onClick on the center pfp div in mobile section
   useEffect(() => {
-    const el = mobilePfpRef.current;
-    if (!el) return;
-    const onStart = (e: TouchEvent) => { e.preventDefault(); setPfpHovered(true); };
-    const onEnd   = (e: TouchEvent) => { e.preventDefault(); setPfpHovered(false); };
-    el.addEventListener("touchstart",  onStart,  { passive: false });
-    el.addEventListener("touchend",    onEnd,    { passive: false });
-    el.addEventListener("touchcancel", onEnd,    { passive: false });
-    return () => {
-      el.removeEventListener("touchstart",  onStart);
-      el.removeEventListener("touchend",    onEnd);
-      el.removeEventListener("touchcancel", onEnd);
-    };
+    // No-op: mobile touch is now handled via onClick toggles directly on elements
+    return () => {};
   }, []);
 
   const certificatesData: Certificate[] = [
@@ -336,11 +381,13 @@ export default function Home() {
         .marquee-track:hover { animation-play-state: paused; }
         .cert-card-item {
           flex-shrink: 0;
-          width: calc((100vw - 384px - 32px) / 3);
+          width: calc((100vw - clamp(64px, 15vw, 384px) * 2 - 32px) / 3);
+          min-width: 140px;
         }
-        @media (max-width: 768px) {
+        @media (max-width: 640px) {
           .cert-card-item {
-            width: calc((100vw - 64px - 32px) / 3);
+            width: calc((100vw - 64px - 24px) / 2);
+            min-width: 120px;
           }
         }
         @keyframes pfpCardIn {
@@ -365,7 +412,7 @@ export default function Home() {
 
       {/* ── Navigation ── */}
       <nav
-        className="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-8 md:px-[192px] py-5 backdrop-blur-xl transition-colors duration-300"
+        className="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-6 sm:px-12 lg:px-[192px] py-5 backdrop-blur-xl transition-colors duration-300"
         style={{ borderBottom: `1px solid ${t.border}`, backgroundColor: `${t.bg}b3` }}
       >
         <button
@@ -411,7 +458,7 @@ export default function Home() {
       {/* ── Dropdown Menu ── */}
       {menuOpen && (
         <div
-          className="fixed top-16 right-8 md:right-[192px] z-10 rounded-2xl p-4 flex flex-col gap-1 min-w-[180px] shadow-xl"
+          className="fixed top-16 right-6 sm:right-12 lg:right-[192px] z-10 rounded-2xl p-4 flex flex-col gap-1 min-w-[180px] shadow-xl"
           style={{ backgroundColor: t.bgCard, border: `1px solid ${t.border}` }}
         >
           <button
@@ -459,7 +506,7 @@ export default function Home() {
       )}
 
       {/* ── Hero ── */}
-      <section id="hero" className="relative min-h-screen flex flex-col justify-start pb-24 px-8 md:px-[192px] pt-32">
+      <section id="hero" className="relative min-h-0 md:min-h-screen flex flex-col justify-start pb-12 md:pb-24 px-6 sm:px-12 lg:px-[192px] pt-20 md:pt-32">
         <div className="mb-8">
           <span
             className="inline-flex items-center gap-2 text-xs rounded-full px-4 py-1.5"
@@ -504,7 +551,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-3 mt-12">
+        <div className="flex flex-wrap gap-3 mt-6 md:mt-12">
           {skills.map((skill, i) => (
             <div
               key={i}
@@ -518,93 +565,174 @@ export default function Home() {
         </div>
 
         {/* ── Mobile Profile + Nav (visible on mobile only) ── */}
-        <div className="flex md:hidden flex-col items-center gap-6 mt-14">
-          {/* Profile photo */}
+        <div className="flex md:hidden flex-col items-center gap-10 mt-10 mb-4">
+          {/* Touch-driven floating cards — mirrors desktop hover interaction */}
           <div
+            style={{ position: "relative", width: 360, height: 360, touchAction: "none" }}
             ref={mobilePfpRef}
-            style={{ position: "relative", width: 140, height: 140, touchAction: "none", cursor: "pointer" }}
             onMouseEnter={() => setPfpHovered(true)}
-            onMouseLeave={() => setPfpHovered(false)}
+            onMouseLeave={() => { setPfpHovered(false); setHoveredSlice(null); }}
           >
-            <img
-              src="/pfp.jpg"
-              alt="Mariel Inojales"
-              style={{
-                position: "absolute", inset: 0,
-                width: 140, height: 140,
-                borderRadius: "50%", objectFit: "cover",
-                border: `2px solid ${t.border}`,
-                opacity: pfpHovered ? 0 : 1,
-                transition: "opacity 0.4s ease",
-                pointerEvents: "none",
-                userSelect: "none",
-                WebkitUserSelect: "none",
-              }}
-            />
-            <img
-              src="/pfp-hover.jpg"
-              alt="Mariel Inojales"
-              style={{
-                position: "absolute", inset: 0,
-                width: 140, height: 140,
-                borderRadius: "50%", objectFit: "cover",
-                border: `2px solid ${t.borderHover}`,
-                opacity: pfpHovered ? 1 : 0,
-                transition: "opacity 0.4s ease",
-                pointerEvents: "none",
-                userSelect: "none",
-                WebkitUserSelect: "none",
-              }}
-            />
-          </div>
+            {/* Floating GIF cards — tap pfp to reveal, tap card to open */}
+            {([
+              { label: "About",        color: "#a3e635", caption: "Who I am",  image: "/About.gif",        pos: "top"    },
+              { label: "Certificates", color: "#22d3ee", caption: "My certs",  image: "/Certificates.gif", pos: "right"  },
+              { label: "Projects",     color: "#f97316", caption: "My work",   image: "/Projects.gif",     pos: "bottom" },
+              { label: "Contact",      color: "#e879f9", caption: "Reach me",  image: "/Contact.gif",      pos: "left"   },
+            ] as { label: string; color: string; caption: string; image: string; pos: string }[]).map((item) => {
+              const isHov = hoveredSlice === item.label;
+              const cardSize = 100;
+              // Push cards away from center with explicit inset values (container is 360px, center is 180px)
+              const posStyle: React.CSSProperties =
+                item.pos === "top"    ? { top: 8,    left: "50%", transform: "translateX(-50%)" } :
+                item.pos === "right"  ? { right: 8,  top:  "50%", transform: "translateY(-50%)" } :
+                item.pos === "bottom" ? { bottom: 8, left: "50%", transform: "translateX(-50%)" } :
+                                       { left: 8,   top:  "50%", transform: "translateY(-50%)" };
+              return (
+                <button
+                  key={item.label}
+                  onClick={() => { if (pfpHovered) { setRadialOpen(item.label); setPfpHovered(false); } }}
+                  onMouseEnter={() => setHoveredSlice(item.label)}
+                  onMouseLeave={() => setHoveredSlice(null)}
+                  onTouchStart={(e) => { e.stopPropagation(); setHoveredSlice(item.label); }}
+                  onTouchEnd={(e) => {
+                    e.stopPropagation();
+                    if (pfpHovered) {
+                      setRadialOpen(item.label);
+                      setPfpHovered(false);
+                      setHoveredSlice(null);
+                    }
+                  }}
+                  style={{
+                    position: "absolute",
+                    ...posStyle,
+                    width: cardSize,
+                    height: cardSize,
+                    borderRadius: 18,
+                    overflow: "hidden",
+                    border: `1.5px solid ${isHov ? item.color : item.color + "55"}`,
+                    boxShadow: isHov ? `0 0 14px ${item.color}55` : "none",
+                    opacity: pfpHovered ? 1 : 0,
+                    transform: `${posStyle.transform ?? ""} ${
+                      !pfpHovered
+                        ? item.pos === "top"    ? "translateY(-8px)"
+                        : item.pos === "bottom" ? "translateY(8px)"
+                        : item.pos === "right"  ? "translateX(8px)"
+                        :                         "translateX(-8px)"
+                        : ""
+                    }`,
+                    transition: "opacity 0.3s ease, transform 0.35s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s ease, border-color 0.2s ease",
+                    cursor: "pointer",
+                    padding: 0,
+                    background: "none",
+                    pointerEvents: pfpHovered ? "auto" : "none",
+                  }}
+                >
+                  <img
+                    src={item.image}
+                    alt={item.label}
+                    style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                  />
+                  <div style={{
+                    position: "absolute", bottom: 0, left: 0, right: 0,
+                    padding: "5px 7px",
+                    background: isHov ? `${item.color}dd` : "rgba(0,0,0,0.55)",
+                    transition: "background 0.2s ease",
+                  }}>
+                    <p style={{ margin: 0, fontSize: 9, fontWeight: 700, color: isHov ? "#000" : "#fff", letterSpacing: "0.05em" }}>
+                      {item.label}
+                    </p>
+                    <p style={{ margin: 0, fontSize: 8, color: isHov ? "rgba(0,0,0,0.7)" : "rgba(255,255,255,0.65)" }}>
+                      {item.caption}
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
 
-          {/* 2×2 nav grid */}
-          <div className="grid grid-cols-2 gap-3 w-full max-w-xs">
-            {[
-              { label: "About",        color: "#a3e635", caption: "Who I am" },
-              { label: "Certificates", color: "#22d3ee", caption: "My certs" },
-              { label: "Projects",     color: "#f97316", caption: "My work"  },
-              { label: "Contact",      color: "#e879f9", caption: "Reach me" },
-            ].map((item) => (
-              <button
-                key={item.label}
-                onClick={() => setRadialOpen(item.label)}
-                className="flex flex-col items-start gap-0.5 rounded-2xl px-4 py-3 text-left transition-all duration-200"
+            {/* Centre pfp — tap to toggle cards */}
+            <div
+              style={{
+                position: "absolute",
+                top: "50%", left: "50%",
+                transform: "translate(-50%, -50%)",
+                width: 140, height: 140,
+                zIndex: 1,
+              }}
+              onClick={() => { setPfpHovered(!pfpHovered); setHoveredSlice(null); }}
+            >
+              <img
+                src="/pfp.jpg"
+                alt="Mariel Inojales"
                 style={{
-                  border: `1px solid ${item.color}55`,
-                  backgroundColor: dark ? "rgba(15,15,15,0.8)" : "rgba(245,245,240,0.85)",
+                  position: "absolute", inset: 0,
+                  width: "100%", height: "100%",
+                  borderRadius: "50%", objectFit: "cover",
+                  border: `2px solid ${pfpHovered ? t.borderHover : t.border}`,
+                  boxShadow: pfpHovered
+                    ? dark
+                      ? "0 0 0 4px rgba(163,230,53,0.13), 0 16px 40px rgba(0,0,0,0.5)"
+                      : "0 0 0 4px rgba(163,230,53,0.18), 0 16px 32px rgba(0,0,0,0.18)"
+                    : "none",
+                  opacity: pfpHovered ? 0 : 1,
+                  transition: "opacity 0.4s ease, border-color 0.3s ease, box-shadow 0.3s ease",
                 }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = item.color + "cc";
-                  e.currentTarget.style.backgroundColor = item.color + "18";
+              />
+              <img
+                src="/pfp-hover.jpg"
+                alt="Mariel Inojales"
+                style={{
+                  position: "absolute", inset: 0,
+                  width: "100%", height: "100%",
+                  borderRadius: "50%", objectFit: "cover",
+                  border: `2px solid ${t.borderHover}`,
+                  boxShadow: dark
+                    ? "0 0 0 4px rgba(163,230,53,0.13), 0 16px 40px rgba(0,0,0,0.5)"
+                    : "0 0 0 4px rgba(163,230,53,0.18), 0 16px 32px rgba(0,0,0,0.18)",
+                  opacity: pfpHovered ? 1 : 0,
+                  transition: "opacity 0.4s ease",
                 }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = item.color + "55";
-                  e.currentTarget.style.backgroundColor = dark ? "rgba(15,15,15,0.8)" : "rgba(245,245,240,0.85)";
-                }}
-              >
-                <span className="text-xs font-bold tracking-wide" style={{ color: item.color }}>{item.label}</span>
-                <span className="text-[11px]" style={{ color: t.textMuted }}>{item.caption}</span>
-              </button>
-            ))}
+              />
+            </div>
+
+            {/* Tap hint */}
+            <p
+              style={{
+                position: "absolute",
+                bottom: -24, left: "50%", transform: "translateX(-50%)",
+                fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase",
+                color: t.textFaint,
+                opacity: pfpHovered ? 0 : 0.7,
+                transition: "opacity 0.2s ease",
+                whiteSpace: "nowrap",
+              }}
+            >
+              tap me
+            </p>
           </div>
         </div>
 
         {/* ── PFP Floating Cards Menu ── */}
         <div
-          className="hidden md:flex absolute bottom-24 right-[192px] items-center justify-center"
-          style={{ position: "absolute", width: 680, height: 680 }}
+          className="hidden md:flex absolute items-center justify-center"
+          style={{
+            bottom: 96,
+            right: "clamp(32px, 10vw, 192px)",
+            width: "clamp(420px, 45vw, 680px)",
+            height: "clamp(420px, 45vw, 680px)",
+          }}
           onMouseEnter={() => setPfpHovered(true)}
           onMouseLeave={() => { setPfpHovered(false); setHoveredSlice(null); }}
         >
           {/* Floating GIF cards — top, right, bottom, left */}
           {([
-            { label: "About",        color: "#a3e635", caption: "Who I am",  image: "/About.gif",   pos: "top"    },
+            { label: "About",        color: "#a3e635", caption: "Who I am",  image: "/About.gif",  pos: "top"    },
             { label: "Certificates", color: "#22d3ee", caption: "My certs",  image: "/Certificates.gif",   pos: "right"  },
             { label: "Projects",     color: "#f97316", caption: "My work",   image: "/Projects.gif",pos: "bottom" },
             { label: "Contact",      color: "#e879f9", caption: "Reach me",  image: "/Contact.gif", pos: "left"   },
           ] as { label: string; color: string; caption: string; image: string; pos: string }[]).map((item) => {
             const isHov = hoveredSlice === item.label;
+            const cardSize = "clamp(100px, 25%, 170px)";
             const posStyle: React.CSSProperties =
               item.pos === "top"    ? { top: 0,    left: "50%", transform: "translateX(-50%)" } :
               item.pos === "right"  ? { right: 0,  top:  "50%", transform: "translateY(-50%)" } :
@@ -619,8 +747,9 @@ export default function Home() {
                 style={{
                   position: "absolute",
                   ...posStyle,
-                  width: 170,
-                  height: 170,
+                  width: cardSize,
+                  aspectRatio: "1",
+                  height: "auto",
                   borderRadius: 22,
                   overflow: "hidden",
                   border: `1.5px solid ${isHov ? item.color : item.color + "55"}`,
@@ -665,13 +794,13 @@ export default function Home() {
           })}
 
           {/* Centre: Profile image with hover swap */}
-          <div style={{ position: "relative", width: 340, height: 340, zIndex: 1 }}>
+          <div style={{ position: "relative", width: "clamp(200px, 50%, 340px)", aspectRatio: "1", height: "auto", zIndex: 1 }}>
             <img
               src="/pfp.jpg"
               alt="Mariel Inojales"
               style={{
                 position: "absolute", inset: 0,
-                width: 340, height: 340,
+                width: "100%", height: "100%",
                 borderRadius: "50%", objectFit: "cover",
                 border: `2px solid ${pfpHovered ? t.borderHover : t.border}`,
                 boxShadow: pfpHovered
@@ -688,7 +817,7 @@ export default function Home() {
               alt="Mariel Inojales"
               style={{
                 position: "absolute", inset: 0,
-                width: 340, height: 340,
+                width: "100%", height: "100%",
                 borderRadius: "50%", objectFit: "cover",
                 border: `2px solid ${t.borderHover}`,
                 boxShadow: dark
@@ -719,7 +848,7 @@ export default function Home() {
 
 
       {/* ── Tools ── */}
-      <section id="tools" className="px-8 md:px-[192px] py-32" style={{ borderTop: `1px solid ${t.border}` }}>
+      <section id="tools" className="px-6 sm:px-12 lg:px-[192px] py-16 md:py-32" style={{ borderTop: `1px solid ${t.border}` }}>
         <p className="text-xs uppercase tracking-widest mb-4" style={{ color: t.textFaint }}> Tools</p>
         <h2
           className="text-[clamp(2.5rem,6vw,5rem)] font-bold tracking-tight mb-4"
@@ -836,7 +965,7 @@ export default function Home() {
         >
           <GridBg />
           <div
-            className="sticky top-0 z-10 flex items-center justify-between px-8 md:px-[192px] py-5 backdrop-blur-xl"
+            className="sticky top-0 z-10 flex items-center justify-between px-6 sm:px-12 lg:px-[192px] py-5 backdrop-blur-xl"
             style={{ borderBottom: `1px solid ${t.border}`, backgroundColor: `${t.bg}cc` }}
           >
             <button
@@ -852,7 +981,7 @@ export default function Home() {
               Curriculum Vitae
             </span>
           </div>
-          <div className="px-8 md:px-[192px] py-16">
+          <div className="px-6 sm:px-12 lg:px-[192px] py-16">
             <p className="text-xs uppercase tracking-widest mb-6" style={{ color: t.textFaint }}>Curriculum Vitae</p>
             <h2
               className="text-[clamp(1.8rem,4vw,3.5rem)] font-bold tracking-tight mb-10"
@@ -875,7 +1004,7 @@ export default function Home() {
         >
           <GridBg />
           <div
-            className="sticky top-0 z-10 flex items-center justify-between px-8 md:px-[192px] py-5 backdrop-blur-xl"
+            className="sticky top-0 z-10 flex items-center justify-between px-6 sm:px-12 lg:px-[192px] py-5 backdrop-blur-xl"
             style={{ borderBottom: `1px solid ${t.border}`, backgroundColor: `${t.bg}cc` }}
           >
             <button
@@ -892,7 +1021,7 @@ export default function Home() {
             </span>
           </div>
 
-          <div className="px-8 md:px-[192px] py-16 flex flex-col lg:flex-row gap-16">
+          <div className="px-6 sm:px-12 lg:px-[192px] py-16 flex flex-col lg:flex-row gap-16">
             <div className="flex-1 min-w-0">
               <p className="text-xs uppercase tracking-widest mb-6" style={{ color: t.textFaint }}>Certificate Details</p>
               <h2
@@ -1010,6 +1139,7 @@ export default function Home() {
       {/* ── Radial Section Overlays ── */}
       {radialOpen && (
         <div
+          ref={overlayRef}
           className="fixed inset-0 z-50 overflow-y-auto transition-colors duration-300"
           style={{ backgroundColor: `${t.bg}ee`, color: t.text }}
         >
@@ -1017,7 +1147,7 @@ export default function Home() {
 
           {/* Top bar */}
           <div
-            className="sticky top-0 z-10 flex items-center justify-between px-8 md:px-[192px] py-5 backdrop-blur-xl"
+            className="sticky top-0 z-10 flex items-center justify-between px-6 sm:px-12 lg:px-[192px] py-5 backdrop-blur-xl"
             style={{ borderBottom: `1px solid ${t.border}`, backgroundColor: `${t.bg}cc` }}
           >
             <button
@@ -1034,7 +1164,7 @@ export default function Home() {
             </span>
           </div>
 
-          <div className="px-8 md:px-[192px] py-16">
+          <div className="px-6 sm:px-12 lg:px-[192px] py-16">
             <p className="text-xs uppercase tracking-widest mb-6" style={{ color: t.textFaint }}>{radialOpen}</p>
             <h2
               className="text-[clamp(1.8rem,4vw,3.5rem)] font-bold tracking-tight mb-10"
@@ -1063,131 +1193,141 @@ export default function Home() {
 
                 {/* Journey Timeline */}
                 <div>
-                  <p className="text-sm uppercase tracking-widest mb-8" style={{ color: t.textFaint }}>My Journey</p>
-                  <div className="relative">
+                  <div className="flex items-center gap-2 mb-2">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    <p className="text-xs uppercase tracking-widest font-semibold" style={{ color: "#22d3ee" }}>My Journey</p>
+                  </div>
+                  <h3
+                    className="text-[clamp(2rem,5vw,3.5rem)] font-bold tracking-tight mb-2 leading-tight"
+                    style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: t.text }}
+                  >
+                    Milestones
+                  </h3>
+                  <p className="text-sm mb-10" style={{ color: t.textMuted }}>Valuable insights gained along the way.</p>
 
-                    {/* Aceternity-style SVG beam rail */}
-                    <svg
-                      className="absolute left-0 top-0 pointer-events-none"
-                      width="20"
-                      height="100%"
-                      viewBox="0 0 20 900"
-                      preserveAspectRatio="none"
-                      style={{ overflow: "visible" }}
-                    >
-                      <defs>
-                        <linearGradient id="beamGradient" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1="0" y2="160">
-                          <stop offset="0"    stopColor={dark ? "#ffffff" : "#000000"} stopOpacity="0" />
-                          <stop offset="0.3"  stopColor={dark ? "#ffffff" : "#000000"} stopOpacity="0.8" />
-                          <stop offset="0.7"  stopColor={dark ? "#ffffff" : "#000000"} stopOpacity="0.8" />
-                          <stop offset="1"    stopColor={dark ? "#ffffff" : "#000000"} stopOpacity="0" />
-                        </linearGradient>
-                      </defs>
+                  <div className="relative" ref={timelineRef}>
+                    {/* Rail track */}
+                    <div
+                      className="absolute left-0 top-0 bottom-0"
+                      style={{ width: 2, backgroundColor: dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)" }}
+                    />
+                    {/* Growing progress bar */}
+                    <div
+                      className="absolute left-0 top-0"
+                      style={{
+                        width: 2,
+                        height: `${scrollProgress * 100}%`,
+                        backgroundColor: dark ? "rgba(255,255,255,0.75)" : "rgba(0,0,0,0.65)",
+                      }}
+                    />
+                    {/* Single circle at the very top of the rail */}
+                    <div
+                      className="absolute"
+                      style={{
+                        left: -3, top: 0,
+                        width: 8, height: 8,
+                        borderRadius: "50%",
+                        backgroundColor: dark ? "#ffffff" : "#000000",
+                        boxShadow: dark ? "0 0 8px rgba(255,255,255,0.6)" : "0 0 8px rgba(0,0,0,0.3)",
+                      }}
+                    />
 
-                      {/* Static faint rail */}
-                      <path
-                        d="M 10 0 V 900"
-                        fill="none"
-                        stroke={dark ? "#ffffff" : "#000000"}
-                        strokeOpacity="0.08"
-                        strokeWidth="1.25"
-                      />
-
-                      {/* Beam — travels via strokeDashoffset on scroll */}
-                      <path
-                        d="M 10 0 V 900"
-                        fill="none"
-                        stroke="url(#beamGradient)"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeDasharray="160 900"
-                        strokeDashoffset={-(activeStep / 5) * 740}
-                        className="motion-reduce:hidden"
-                        style={{ transition: "stroke-dashoffset 0.8s cubic-bezier(0.4,0,0.2,1)" }}
-                      />
-                    </svg>
-
-                    <div className="space-y-12 pl-10">
+                    <div className="space-y-14 pl-8">
                       {([
                         {
                           year: "Junior High",
+                          badge: "Early Days",
                           title: "The First Line of Code",
+                          subtitle: "Self-taught · Online",
                           text: "Before IT was even a career plan, I was already writing HTML and CSS in junior high school. Something about making things appear on a screen just clicked — and that curiosity never left.",
                           badges: ["HTML", "CSS"],
-                          detail: "💡 Googling 'how to make a website' before I even knew what a developer was.",
                         },
                         {
                           year: "Senior High · Dec. 2019",
+                          badge: "Certified",
                           title: "TVL – CSS NC2 Passer",
+                          subtitle: "Davao City, Philippines",
                           text: "Passed the Technical-Vocational-Livelihood track with a Computer Systems Servicing NC2 certification — an early proof that the tech path was always the right one.",
                           badges: ["NC2 Certified", "Computer Systems Servicing", "TVL Track"],
-                          detail: "🏅 NC2 certified in Computer Systems Servicing — hardware, networking, and software all in one.",
                         },
                         {
                           year: "2022",
+                          badge: "Student",
                           title: "Enrolled at HCDC",
+                          subtitle: "Holy Cross of Davao College · Davao City",
                           text: "I chose to pursue IT at Holy Cross of Davao College — not by accident, but because I already knew this was the field for me. Formal training gave structure to the curiosity I'd been carrying for years.",
                           badges: ["BS Information Technology", "HCDC", "Davao"],
-                          detail: "🏫 Holy Cross of Davao College, Davao City — where the real grind began.",
                         },
                         {
                           year: "2023–2024",
+                          badge: "Self-study",
                           title: "Leveling Up",
+                          subtitle: "Remote · Online Platforms",
                           text: "Started going beyond the classroom — picking up React, Next.js, and Tailwind, earning certificates from Udemy and Simplilearn, and building real projects that pushed me further than any assignment could.",
                           badges: ["React", "Next.js", "Tailwind CSS", "Supabase", "Udemy", "Simplilearn"],
-                          detail: "📜 Earned multiple certificates while juggling school — learning doesn't stop at the classroom door.",
                         },
                         {
                           year: "2025",
+                          badge: "Final Year",
                           title: "Soon-to-be Graduate",
+                          subtitle: "Holy Cross of Davao College · Davao City",
                           text: "Almost at the finish line at HCDC — but this isn't the end of the journey, it's the beginning. Looking for opportunities to build real products, grow as a developer, and make a real impact.",
-                          badges: ["Final Year", "Capstone", "Available for Work"],
-                          detail: "🎓 Final year at HCDC — capstone, thesis, and a portfolio that tells the whole story.",
+                          badges: ["Capstone", "Available for Work"],
                         },
                         {
                           year: "2026 →",
+                          badge: "Open to Work",
                           title: "The Road to Full Stack",
+                          subtitle: "Davao City, Philippines",
                           text: "The goal is clear — become a full stack developer. Every day is another rep: sharpening skills, building projects, and pushing further into both frontend and backend.",
-                          badges: ["Full Stack", "Node.js", "PHP", "MySQL", "Open to Work"],
-                          detail: "🚀 Looking for a job to turn that practice into real-world experience.",
+                          badges: ["Full Stack", "Node.js", "PHP", "MySQL"],
                         },
-                      ] as { year: string; title: string; text: string; badges: string[]; detail: string }[]).map((step, i) => (
+                      ] as { year: string; badge: string; title: string; subtitle: string; text: string; badges: string[] }[]).reverse().map((step, i) => (
                         <div
                           key={step.year}
                           className="relative transition-all duration-500"
                           ref={(el) => { stepRefs.current[i] = el; }}
                           style={{
-                            opacity: activeStep === i ? 1 : 0.35,
-                            transform: activeStep === i ? "translateX(6px)" : "translateX(0)",
+                            opacity: activeStep === i ? 1 : 0.3,
+                            transform: activeStep === i ? "translateX(4px)" : "translateX(0)",
                           }}
                         >
-                          {/* Dot */}
-                          <div
-                            className="absolute -left-10 top-1.5 w-5 h-5 rounded-full border-2 flex-shrink-0 transition-all duration-500"
+                          {/* Badge chip */}
+                          <span
+                            className="inline-block text-[11px] font-semibold px-3 py-1 rounded-full mb-3"
                             style={{
-                              backgroundColor: activeStep === i ? (dark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.1)") : "transparent",
-                              borderColor: activeStep === i ? t.borderHover : t.border,
-                              boxShadow: activeStep === i ? (dark ? "0 0 10px rgba(255,255,255,0.2)" : "0 0 10px rgba(0,0,0,0.15)") : "none",
+                              backgroundColor: dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+                              color: t.text,
                             }}
-                          />
+                          >
+                            {step.badge}
+                          </span>
+
+                          {/* Big serif title */}
+                          <h4
+                            className="text-[clamp(1.4rem,3vw,2rem)] font-bold leading-tight mb-1"
+                            style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: t.text }}
+                          >
+                            {step.title}
+                          </h4>
+
+                          {/* Subtitle / location */}
+                          <p className="text-sm mb-3 font-medium" style={{ color: "#22d3ee" }}>{step.subtitle}</p>
 
                           {/* Year */}
-                          <p className="text-sm uppercase tracking-widest font-bold mb-2" style={{ color: t.textMuted }}>{step.year}</p>
+                          <p className="text-xs uppercase tracking-widest mb-3" style={{ color: t.textFaint }}>{step.year}</p>
 
-                          {/* Title */}
-                          <p className="text-xl font-bold mb-2" style={{ color: t.text }}>{step.title}</p>
-
-                          {/* Text */}
-                          <p className="text-sm leading-relaxed mb-3" style={{ color: t.textMuted }}>{step.text}</p>
+                          {/* Body text */}
+                          <p className="text-sm leading-relaxed mb-4" style={{ color: t.textMuted }}>{step.text}</p>
 
                           {/* Badges */}
-                          <div className="flex flex-wrap gap-1.5 mb-3">
+                          <div className="flex flex-wrap gap-1.5">
                             {step.badges.map((badge) => (
                               <span
                                 key={badge}
-                                className="text-[10px] px-2 py-0.5 rounded-full font-medium"
+                                className="text-[10px] px-2.5 py-1 rounded-full font-medium"
                                 style={{
-                                  backgroundColor: dark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)",
+                                  backgroundColor: dark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)",
                                   border: `1px solid ${t.border}`,
                                   color: t.textMuted,
                                 }}
@@ -1196,18 +1336,6 @@ export default function Home() {
                               </span>
                             ))}
                           </div>
-
-                          {/* Detail */}
-                          <p
-                            className="text-[11px] leading-relaxed rounded-xl px-3 py-2"
-                            style={{
-                              color: t.textFaint,
-                              backgroundColor: dark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.03)",
-                              border: `1px dashed ${t.border}`,
-                            }}
-                          >
-                            {step.detail}
-                          </p>
                         </div>
                       ))}
                     </div>
