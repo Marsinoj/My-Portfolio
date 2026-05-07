@@ -92,9 +92,9 @@ export default function Home() {
       const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
       const tick = () => {
-        // Smooth lerp toward target
-        currentProgress = lerp(currentProgress, targetProgress, 0.1);
-        if (Math.abs(currentProgress - targetProgress) > 0.0005) {
+        // Smooth lerp toward target — 0.12 gives fluid but responsive tracking
+        currentProgress = lerp(currentProgress, targetProgress, 0.12);
+        if (Math.abs(currentProgress - targetProgress) > 0.1) {
           setScrollProgress(currentProgress);
           rafId = requestAnimationFrame(tick);
         } else {
@@ -104,40 +104,41 @@ export default function Home() {
       };
 
       const handleScroll = () => {
-        // Active step — find which step's top is closest to 40% down the viewport
+        const steps = stepRefs.current.filter(Boolean) as HTMLDivElement[];
+        if (!steps.length || !timelineRef.current) return;
+
+        // Convert a viewport rect.top → scroll-stable position inside the scroller
+        // scrollerRect.top is constant (fixed overlay fills screen), so:
+        //   scrollRelative = rect.top - scrollerRect.top + scrollTop
+        const scrollerRect = scroller.getBoundingClientRect();
+        const toScrollPos = (el: HTMLElement) => {
+          const r = el.getBoundingClientRect();
+          return r.top - scrollerRect.top + scroller.scrollTop;
+        };
+
+        // Trigger point: 40% down the visible area
         const triggerY = scroller.scrollTop + scroller.clientHeight * 0.4;
+
         let closestIndex = 0;
         let closestDist = Infinity;
-        stepRefs.current.forEach((el, i) => {
-          if (!el) return;
-          // offsetTop walks up to find position relative to scroller
-          let top = 0;
-          let node: HTMLElement | null = el;
-          while (node && node !== scroller) {
-            top += node.offsetTop;
-            node = node.offsetParent as HTMLElement | null;
-          }
-          const dist = Math.abs(top - triggerY);
+        steps.forEach((el, i) => {
+          const mid = toScrollPos(el) + el.offsetHeight / 2;
+          const dist = Math.abs(mid - triggerY);
           if (dist < closestDist) { closestDist = dist; closestIndex = i; }
         });
         setActiveStep(closestIndex);
 
-        // Progress — how far through the timeline container we've scrolled
-        if (timelineRef.current) {
-          let tlTop = 0;
-          let node: HTMLElement | null = timelineRef.current;
-          while (node && node !== scroller) {
-            tlTop += node.offsetTop;
-            node = node.offsetParent as HTMLElement | null;
-          }
-          const tlHeight = timelineRef.current.offsetHeight;
-          const scrolled = scroller.scrollTop - tlTop;
-          const scrollable = tlHeight - scroller.clientHeight * 0.5;
-          targetProgress = Math.min(1, Math.max(0, scrollable > 0 ? scrolled / scrollable : 0));
+        // Bar height = scroll-relative mid of active step minus scroll-relative top of timeline
+        const tlTop = toScrollPos(timelineRef.current);
+        const activeEl = steps[closestIndex];
+        const activeMid = toScrollPos(activeEl) + activeEl.offsetHeight / 2;
+        targetProgress = Math.min(
+          timelineRef.current.offsetHeight,
+          Math.max(0, activeMid - tlTop)
+        );
 
-          cancelAnimationFrame(rafId);
-          rafId = requestAnimationFrame(tick);
-        }
+        cancelAnimationFrame(rafId);
+        rafId = requestAnimationFrame(tick);
       };
 
       handleScroll();
@@ -1211,29 +1212,35 @@ export default function Home() {
                       className="absolute left-0 top-0 bottom-0"
                       style={{ width: 2, backgroundColor: dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)" }}
                     />
-                    {/* Growing progress bar */}
+                    {/* Growing progress bar — lime, height tracks active step */}
                     <div
                       className="absolute left-0 top-0"
                       style={{
                         width: 2,
-                        height: `${scrollProgress * 100}%`,
-                        backgroundColor: dark ? "rgba(255,255,255,0.75)" : "rgba(0,0,0,0.65)",
+                        height: `${scrollProgress}px`,
+                        backgroundColor: "#a3e635",
+                        boxShadow: "0 0 6px rgba(163,230,53,0.5)",
                       }}
                     />
-                    {/* Single circle at the very top of the rail */}
+                    {/* Fixed dot at the very top of the timeline */}
                     <div
                       className="absolute"
                       style={{
                         left: -3, top: 0,
                         width: 8, height: 8,
                         borderRadius: "50%",
-                        backgroundColor: dark ? "#ffffff" : "#000000",
-                        boxShadow: dark ? "0 0 8px rgba(255,255,255,0.6)" : "0 0 8px rgba(0,0,0,0.3)",
+                        backgroundColor: "#a3e635",
+                        boxShadow: "0 0 10px rgba(163,230,53,0.7)",
                       }}
                     />
 
                     <div className="space-y-14 pl-8">
                       {([
+                        // ─────────────────────────────────────────────────────────
+                        // ✏️  MY JOURNEY STEPS — add, remove, or reorder here.
+                        //     Each step needs: year, badge, title, subtitle, text, badges[]
+                        //     Steps are displayed in REVERSE order (newest first at top).
+                        // ─────────────────────────────────────────────────────────
                         {
                           year: "Junior High",
                           badge: "Early Days",
@@ -1282,22 +1289,27 @@ export default function Home() {
                           text: "The goal is clear — become a full stack developer. Every day is another rep: sharpening skills, building projects, and pushing further into both frontend and backend.",
                           badges: ["Full Stack", "Node.js", "PHP", "MySQL"],
                         },
-                      ] as { year: string; badge: string; title: string; subtitle: string; text: string; badges: string[] }[]).reverse().map((step, i) => (
+                      ] as { year: string; badge: string; title: string; subtitle: string; text: string; badges: string[] }[]).reverse().map((step, i) => {
+                        const isActive = activeStep === i;
+                        return (
                         <div
                           key={step.year}
                           className="relative transition-all duration-500"
                           ref={(el) => { stepRefs.current[i] = el; }}
                           style={{
-                            opacity: activeStep === i ? 1 : 0.3,
-                            transform: activeStep === i ? "translateX(4px)" : "translateX(0)",
+                            opacity: isActive ? 1 : 0.25,
+                            transform: isActive ? "translateX(6px)" : "translateX(0)",
                           }}
                         >
                           {/* Badge chip */}
                           <span
                             className="inline-block text-[11px] font-semibold px-3 py-1 rounded-full mb-3"
                             style={{
-                              backgroundColor: dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
-                              color: t.text,
+                              backgroundColor: isActive
+                                ? "rgba(163,230,53,0.12)"
+                                : dark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
+                              color: isActive ? "#a3e635" : t.textMuted,
+                              border: isActive ? "1px solid rgba(163,230,53,0.3)" : `1px solid ${t.border}`,
                             }}
                           >
                             {step.badge}
@@ -1305,31 +1317,51 @@ export default function Home() {
 
                           {/* Big serif title */}
                           <h4
-                            className="text-[clamp(1.4rem,3vw,2rem)] font-bold leading-tight mb-1"
-                            style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: t.text }}
+                            className="text-[clamp(1.4rem,3vw,2rem)] font-bold leading-tight mb-1 transition-colors duration-500"
+                            style={{
+                              fontFamily: "Georgia, 'Times New Roman', serif",
+                              color: isActive ? t.text : t.textMuted,
+                            }}
                           >
                             {step.title}
                           </h4>
 
                           {/* Subtitle / location */}
-                          <p className="text-sm mb-3 font-medium" style={{ color: "#22d3ee" }}>{step.subtitle}</p>
+                          <p
+                            className="text-sm mb-3 font-medium transition-colors duration-500"
+                            style={{ color: isActive ? "#a3e635" : t.textFaint }}
+                          >
+                            {step.subtitle}
+                          </p>
 
                           {/* Year */}
-                          <p className="text-xs uppercase tracking-widest mb-3" style={{ color: t.textFaint }}>{step.year}</p>
+                          <p
+                            className="text-xs uppercase tracking-widest mb-3 transition-colors duration-500"
+                            style={{ color: isActive ? t.textMuted : t.textFaint }}
+                          >
+                            {step.year}
+                          </p>
 
                           {/* Body text */}
-                          <p className="text-sm leading-relaxed mb-4" style={{ color: t.textMuted }}>{step.text}</p>
+                          <p
+                            className="text-sm leading-relaxed mb-4 transition-colors duration-500"
+                            style={{ color: isActive ? t.textMuted : t.textFaint }}
+                          >
+                            {step.text}
+                          </p>
 
                           {/* Badges */}
                           <div className="flex flex-wrap gap-1.5">
                             {step.badges.map((badge) => (
                               <span
                                 key={badge}
-                                className="text-[10px] px-2.5 py-1 rounded-full font-medium"
+                                className="text-[10px] px-2.5 py-1 rounded-full font-medium transition-all duration-500"
                                 style={{
-                                  backgroundColor: dark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)",
-                                  border: `1px solid ${t.border}`,
-                                  color: t.textMuted,
+                                  backgroundColor: isActive
+                                    ? dark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)"
+                                    : "transparent",
+                                  border: `1px solid ${isActive ? t.border : "transparent"}`,
+                                  color: isActive ? t.textMuted : t.textFaint,
                                 }}
                               >
                                 {badge}
@@ -1337,7 +1369,8 @@ export default function Home() {
                             ))}
                           </div>
                         </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
