@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import GitLoader from "@/components/GitLoader";
+import ImageCarousel from "@/components/ImageCarousel";
 import {
   SiHtml5,
   SiCss,
@@ -521,9 +522,9 @@ export default function Home() {
           className="text-[clamp(3rem,9vw,8rem)] font-bold leading-[0.95] tracking-tight mb-8 max-w-5xl"
           style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: t.text }}
         >
-          Turning <br />Ideas<br />
+          Turning <br />Concepts<br />
           <span style={{ color: dark ? "rgba(255,255,255,0.85)" : "#000000" }}>
-            Into <br />Interfaces
+            Into <br />Reality
           </span>
         </h1>
 
@@ -1176,13 +1177,13 @@ export default function Home() {
 
             {/* About */}
             {radialOpen === "About" && (
-              <div className="max-w-2xl space-y-10">
+              <div className="max-w-2xl mx-auto space-y-10">
 
                 {/* Profile header */}
-                <div className="flex items-center gap-5">
-                  <img src="/pfp.jpg" alt="Mariel" className="w-20 h-20 rounded-full object-cover flex-shrink-0" style={{ border: `1px solid ${t.border}` }} />
+                <div className="flex flex-col items-center gap-4 text-center">
+                  <img src="/pfp.jpg" alt="Mariel" className="w-32 h-32 rounded-full object-cover flex-shrink-0" style={{ border: `1px solid ${t.border}` }} />
                   <div>
-                    <p className="text-lg font-semibold" style={{ color: t.text }}>Mariel Inojales</p>
+                    <p className="text-xl font-semibold" style={{ color: t.text }}>Mariel Inojales</p>
                     <p className="text-sm" style={{ color: t.textMuted }}>IT Student · Holy Cross of Davao College</p>
                     <span className="inline-flex items-center gap-1 text-[11px] mt-1 rounded-full px-2 py-0.5" style={{ background: "#E1F5EE", color: "#0F6E56", border: "1px solid #1D9E75" }}>
                       <span className="w-1.5 h-1.5 rounded-full bg-[#1D9E75] inline-block animate-pulse" /> Available for work
@@ -1193,8 +1194,8 @@ export default function Home() {
 
 
                 {/* Journey Timeline */}
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
+                <div className="text-center">
+                  <div className="flex items-center justify-center gap-2 mb-2">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
                     <p className="text-xs uppercase tracking-widest font-semibold" style={{ color: "#22d3ee" }}>My Journey</p>
                   </div>
@@ -1373,6 +1374,26 @@ export default function Home() {
                       })}
                     </div>
                   </div>
+                </div>
+
+                {/* Gallery carousel — replace the placeholder images with your own */}
+                <div>
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    <p className="text-xs uppercase tracking-widest font-semibold" style={{ color: "#22d3ee" }}>Gallery</p>
+                  </div>
+                  <ImageCarousel
+                    images={[
+                      { src: "/Certificate1.png", alt: "NC2 Certificate" },
+                      { src: "/Certificate2.png", alt: "JavaScript Course" },
+                      { src: "/Certificate3.png", alt: "React Certificate" },
+                      { src: "/Certificate4.png", alt: "Python Certificate" },
+                      { src: "/Certificate5.png", alt: "Web Development" },
+                      { src: "/Certificate6.png", alt: "UI/UX Design" },
+                    ]}
+                    theme={{ bgCard: t.bgCard, border: t.border, textMuted: t.textMuted, text: t.text }}
+                    dark={dark}
+                  />
                 </div>
 
               </div>
