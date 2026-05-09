@@ -18,6 +18,7 @@ import {
   SiInstagram
 } from "react-icons/si";
 import { FaLinkedin, FaFacebook } from "react-icons/fa";
+import { MdEmail } from "react-icons/md";
 import { supabase } from "@/lib/supabase";
 
 type Certificate = {
@@ -42,6 +43,305 @@ type Theme = {
   btnHoverBg: string;
   btnHoverText: string;
 };
+
+// ── macOS Dock Toolbar ──────────────────────────────────────────────
+const DOCK_TOOLS = [
+  {
+    name: "VS Code", category: "Code Editor", color: "#22d3ee",
+    icon: (
+      <svg viewBox="0 0 100 100" width="100%" height="100%" fill="none">
+        <rect width="100" height="100" rx="22" fill="#007ACC"/>
+        <path d="M70 15L25 50l15 11.5L70 38V15z" fill="white" opacity="0.9"/>
+        <path d="M70 85L25 50l15-11.5L70 62v23z" fill="white" opacity="0.9"/>
+        <path d="M70 15v23L40.5 50.5 70 62v23l18-9V24L70 15z" fill="white"/>
+      </svg>
+    ),
+  },
+  {
+    name: "Visual Studio", category: "IDE", color: "#a855f7",
+    icon: (
+      <svg viewBox="0 0 100 100" width="100%" height="100%" fill="none">
+        <rect width="100" height="100" rx="22" fill="#5C2D91"/>
+        <path d="M70 15L25 50l15 11.5L70 38V15z" fill="white" opacity="0.9"/>
+        <path d="M70 85L25 50l15-11.5L70 62v23z" fill="white" opacity="0.9"/>
+        <path d="M70 15v23L40.5 50.5 70 62v23l18-9V24L70 15z" fill="white"/>
+      </svg>
+    ),
+  },
+  {
+    name: "Excel", category: "Spreadsheets", color: "#22c55e",
+    icon: (
+      <svg viewBox="0 0 100 100" width="100%" height="100%" fill="none">
+        <rect width="100" height="100" rx="22" fill="#217346"/>
+        <path d="M58 20H30a4 4 0 00-4 4v52a4 4 0 004 4h40a4 4 0 004-4V36L58 20z" fill="white" opacity="0.15"/>
+        <path d="M58 20v16h16" stroke="white" strokeWidth="2.5" strokeLinejoin="round"/>
+        <path d="M38 48l8 12 8-12M54 48l-8 12" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
+  },
+  {
+    name: "Word", category: "Documents", color: "#3b82f6",
+    icon: (
+      <svg viewBox="0 0 100 100" width="100%" height="100%" fill="none">
+        <rect width="100" height="100" rx="22" fill="#2B579A"/>
+        <path d="M58 20H30a4 4 0 00-4 4v52a4 4 0 004 4h40a4 4 0 004-4V36L58 20z" fill="white" opacity="0.15"/>
+        <path d="M58 20v16h16" stroke="white" strokeWidth="2.5" strokeLinejoin="round"/>
+        <path d="M34 45l6 20 6-14 6 14 6-20" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
+  },
+  {
+    name: "Canva", category: "Design", color: "#f97316",
+    icon: (
+      <svg viewBox="0 0 100 100" width="100%" height="100%" fill="none">
+        <rect width="100" height="100" rx="22" fill="#7D2AE8"/>
+        <circle cx="50" cy="50" r="28" fill="none" stroke="white" strokeWidth="3" opacity="0.3"/>
+        <circle cx="38" cy="42" r="9" fill="#00C4CC"/>
+        <circle cx="62" cy="58" r="9" fill="#FF6B6B"/>
+        <circle cx="62" cy="42" r="9" fill="#FFE066"/>
+        <circle cx="38" cy="58" r="9" fill="#9B59B6"/>
+      </svg>
+    ),
+  },
+  {
+    name: "CapCut", category: "Video Edit", color: "#e879f9",
+    icon: (
+      <svg viewBox="0 0 100 100" width="100%" height="100%" fill="none">
+        <rect width="100" height="100" rx="22" fill="#000000"/>
+        <rect x="18" y="30" width="42" height="40" rx="6" fill="white" opacity="0.9"/>
+        <path d="M60 41l22-10v38L60 59" fill="white" opacity="0.9"/>
+        <path d="M34 42v16M42 50H26" stroke="#000" strokeWidth="4" strokeLinecap="round"/>
+      </svg>
+    ),
+  },
+  {
+    name: "GitHub", category: "Version Control", color: "#e5e5e5",
+    icon: (
+      <svg viewBox="0 0 100 100" width="100%" height="100%" fill="none">
+        <rect width="100" height="100" rx="22" fill="#24292e"/>
+        <path d="M50 18a32 32 0 00-10.1 62.4c1.6.3 2.2-.7 2.2-1.5v-5.8c-8.9 1.9-10.8-4.3-10.8-4.3-1.4-3.7-3.5-4.6-3.5-4.6-2.9-2 .2-1.9.2-1.9 3.2.2 4.8 3.3 4.8 3.3 2.8 4.8 7.4 3.4 9.2 2.6.3-2 1.1-3.4 2-4.2-7.1-.8-14.5-3.5-14.5-15.7 0-3.5 1.2-6.3 3.3-8.5-.3-.8-1.4-4 .3-8.4 0 0 2.7-.9 8.8 3.3a30.6 30.6 0 0116 0c6.1-4.2 8.8-3.3 8.8-3.3 1.7 4.4.6 7.6.3 8.4 2.1 2.2 3.3 5 3.3 8.5 0 12.2-7.5 14.9-14.6 15.7 1.2 1 2.2 3 2.2 6v8.9c0 .8.6 1.8 2.2 1.5A32 32 0 0050 18z" fill="white"/>
+      </svg>
+    ),
+  },
+  {
+    name: "Figma", category: "UI Design", color: "#f24e1e",
+    icon: (
+      <svg viewBox="0 0 100 100" width="100%" height="100%" fill="none">
+        <rect width="100" height="100" rx="22" fill="#1e1e1e"/>
+        <rect x="30" y="18" width="20" height="20" rx="10" fill="#F24E1E"/>
+        <rect x="50" y="18" width="20" height="20" rx="10" fill="#FF7262"/>
+        <rect x="30" y="38" width="20" height="20" rx="0" fill="#A259FF"/>
+        <circle cx="60" cy="48" r="10" fill="#1ABCFE"/>
+        <rect x="30" y="58" width="20" height="20" rx="0 0 10 10" fill="#0ACF83"/>
+      </svg>
+    ),
+  },
+];
+
+function DockToolbar({ dark, t }: { dark: boolean; t: Theme }) {
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const dockRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [mouseX, setMouseX] = useState<number | null>(null);
+  const [mobileScales, setMobileScales] = useState<number[]>(DOCK_TOOLS.map(() => 1));
+  const [mobileCentered, setMobileCentered] = useState<number | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  const BASE = 72;
+  const MAX = 120;
+  const SPREAD = 160;
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  // Recompute per-icon scale on every scroll tick using live getBoundingClientRect
+  useEffect(() => {
+    if (!isMobile) return;
+    const scrollEl = scrollRef.current;
+    const dockEl = dockRef.current;
+    if (!scrollEl || !dockEl) return;
+
+    const compute = () => {
+      const scrollRect = scrollEl.getBoundingClientRect();
+      const viewCenter = scrollRect.left + scrollRect.width / 2;
+      const items = dockEl.querySelectorAll<HTMLElement>(".dock-item");
+      let closestIdx = -1;
+      let minDist = Infinity;
+      const scales = Array.from(items).map((item, i) => {
+        const r = item.getBoundingClientRect();
+        const itemCenter = r.left + r.width / 2;
+        const dist = Math.abs(viewCenter - itemCenter);
+        if (dist < minDist) { minDist = dist; closestIdx = i; }
+        if (dist > SPREAD) return 1;
+        const norm = 1 - dist / SPREAD;
+        return 1 + (MAX / BASE - 1) * norm * norm;
+      });
+      setMobileScales(scales);
+      setMobileCentered(closestIdx);
+    };
+
+    compute();
+    scrollEl.addEventListener("scroll", compute, { passive: true });
+    window.addEventListener("resize", compute);
+    return () => {
+      scrollEl.removeEventListener("scroll", compute);
+      window.removeEventListener("resize", compute);
+    };
+  }, [isMobile]);
+
+  const getDesktopScale = (index: number) => {
+    if (mouseX === null || hoveredIndex === null) return 1;
+    const dockEl = dockRef.current;
+    if (!dockEl) return 1;
+    const items = dockEl.querySelectorAll<HTMLElement>(".dock-item");
+    if (!items[index]) return 1;
+    const rect = items[index].getBoundingClientRect();
+    const itemCenter = rect.left + rect.width / 2;
+    const dist = Math.abs(mouseX - itemCenter);
+    if (dist > SPREAD) return 1;
+    const norm = 1 - dist / SPREAD;
+    return 1 + (MAX / BASE - 1) * norm * norm;
+  };
+
+  // Shared icon list renderer
+  const renderIcons = (getScale: (i: number) => number, isActive: (i: number) => boolean) =>
+    DOCK_TOOLS.map((tool, i) => {
+      const scale = getScale(i);
+      const active = isActive(i);
+      return (
+        <div
+          key={tool.name}
+          className="dock-item relative flex flex-col items-center"
+          style={{ flexShrink: 0 }}
+          onMouseEnter={!isMobile ? () => setHoveredIndex(i) : undefined}
+        >
+          {/* Tooltip */}
+          <div style={{
+            position: "absolute", bottom: "100%", left: "50%",
+            transform: "translateX(-50%)", marginBottom: 10,
+            opacity: active ? 1 : 0, pointerEvents: "none",
+            transition: "opacity 0.15s ease", whiteSpace: "nowrap", zIndex: 10,
+          }}>
+            <div className="text-xs font-semibold px-3 py-1.5 rounded-lg" style={{
+              background: dark ? "rgba(30,30,30,0.95)" : "rgba(255,255,255,0.95)",
+              color: t.text, border: `1px solid ${t.border}`,
+              boxShadow: "0 4px 16px rgba(0,0,0,0.25)",
+            }}>
+              {tool.name}
+              <span className="block text-[10px] font-normal mt-0.5" style={{ color: tool.color }}>
+                {tool.category}
+              </span>
+            </div>
+            <div style={{
+              width: 8, height: 8,
+              background: dark ? "rgba(30,30,30,0.95)" : "rgba(255,255,255,0.95)",
+              border: `1px solid ${t.border}`, borderTop: "none", borderLeft: "none",
+              transform: "rotate(45deg)", margin: "-4px auto 0",
+            }} />
+          </div>
+
+          {/* Icon */}
+          <div style={{
+            width: BASE, height: BASE,
+            borderRadius: Math.round(BASE * 0.22), overflow: "hidden",
+            transform: `scale(${scale})`, transformOrigin: "bottom center",
+            transition: "transform 0.15s cubic-bezier(0.34,1.56,0.64,1)",
+            boxShadow: active
+              ? `0 8px 24px ${tool.color}55, 0 2px 8px rgba(0,0,0,0.3)`
+              : "0 2px 8px rgba(0,0,0,0.2)",
+          }}>
+            {tool.icon}
+          </div>
+
+          {/* Dot */}
+          <div style={{
+            width: 4, height: 4, borderRadius: "50%", marginTop: 5,
+            backgroundColor: tool.color, opacity: 0.6,
+          }} />
+        </div>
+      );
+    });
+
+  const reflection = (width = "100%") => (
+    <div style={{
+      width, height: 1, marginTop: 2,
+      background: dark
+        ? "linear-gradient(90deg, transparent, rgba(255,255,255,0.06) 30%, rgba(255,255,255,0.06) 70%, transparent)"
+        : "linear-gradient(90deg, transparent, rgba(0,0,0,0.06) 30%, rgba(0,0,0,0.06) 70%, transparent)",
+    }} />
+  );
+
+  const pillStyle: React.CSSProperties = {
+    display: "flex", alignItems: "flex-end", gap: 20,
+    padding: "16px 24px", borderRadius: 20,
+    background: dark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)",
+    border: `1px solid ${dark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.10)"}`,
+    backdropFilter: "blur(20px)",
+    boxShadow: dark
+      ? "0 8px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)"
+      : "0 8px 40px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.8)",
+  };
+
+  // ── Mobile ────────────────────────────────────────────────────────
+  if (isMobile) {
+    return (
+      <div className="flex flex-col items-center mb-16 w-full">
+        <div
+          ref={scrollRef}
+          style={{
+            width: "100%",
+            overflowX: "auto",
+            overflowY: "visible",
+            paddingTop: 48,
+            paddingBottom: 16,
+            scrollbarWidth: "none",
+          }}
+          className="[&::-webkit-scrollbar]:hidden"
+        >
+          {/* Pill: left/right margin = half viewport so first/last icon can reach center */}
+          <div
+            ref={dockRef}
+            style={{
+              ...pillStyle,
+              display: "inline-flex",
+              marginLeft: "calc(50vw - 60px)",
+              marginRight: "calc(50vw - 60px)",
+            }}
+          >
+            {renderIcons(
+              (i) => mobileScales[i] ?? 1,
+              (i) => mobileCentered === i,
+            )}
+          </div>
+        </div>
+        {reflection("80%")}
+      </div>
+    );
+  }
+
+  // ── Desktop ───────────────────────────────────────────────────────
+  return (
+    <div
+      className="flex flex-col items-center mb-16"
+      onMouseLeave={() => { setHoveredIndex(null); setMouseX(null); }}
+    >
+      <div
+        ref={dockRef}
+        style={{ ...pillStyle, gap: 20 }}
+        className="gap-5"
+        onMouseMove={(e) => setMouseX(e.clientX)}
+      >
+        {renderIcons(getDesktopScale, (i) => hoveredIndex === i)}
+      </div>
+      {reflection()}
+    </div>
+  );
+}
+// ────────────────────────────────────────────────────────────────────
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
@@ -78,13 +378,12 @@ export default function Home() {
   const [scrollProgress, setScrollProgress] = useState(0);
 
   useEffect(() => {
-    if (radialOpen !== "About") return;
-
     let rafId: number;
     let cleanup: (() => void) | undefined;
 
     const attach = () => {
-      const scroller = overlayRef.current;
+      // Use the overlay scroller if open, otherwise the window
+      const scroller = overlayRef.current ?? (typeof window !== "undefined" ? (document.documentElement as unknown as HTMLDivElement) : null);
       if (!scroller) return;
 
       let targetProgress = 0;
@@ -108,17 +407,21 @@ export default function Home() {
         const steps = stepRefs.current.filter(Boolean) as HTMLDivElement[];
         if (!steps.length || !timelineRef.current) return;
 
-        // Convert a viewport rect.top → scroll-stable position inside the scroller
-        // scrollerRect.top is constant (fixed overlay fills screen), so:
-        //   scrollRelative = rect.top - scrollerRect.top + scrollTop
-        const scrollerRect = scroller.getBoundingClientRect();
+        const isWindow = scroller === document.documentElement;
+        const scrollTop = isWindow ? window.scrollY : (scroller as HTMLDivElement).scrollTop;
+        const clientHeight = isWindow ? window.innerHeight : (scroller as HTMLDivElement).clientHeight;
+
         const toScrollPos = (el: HTMLElement) => {
+          if (isWindow) {
+            return el.getBoundingClientRect().top + scrollTop;
+          }
+          const scrollerEl = scroller as HTMLDivElement;
           const r = el.getBoundingClientRect();
-          return r.top - scrollerRect.top + scroller.scrollTop;
+          const scrollerRect = scrollerEl.getBoundingClientRect();
+          return r.top - scrollerRect.top + scrollerEl.scrollTop;
         };
 
-        // Trigger point: 40% down the visible area
-        const triggerY = scroller.scrollTop + scroller.clientHeight * 0.4;
+        const triggerY = scrollTop + clientHeight * 0.4;
 
         let closestIndex = 0;
         let closestDist = Infinity;
@@ -143,9 +446,10 @@ export default function Home() {
       };
 
       handleScroll();
-      scroller.addEventListener("scroll", handleScroll, { passive: true });
+      const eventTarget = scroller === document.documentElement ? window : scroller as HTMLDivElement;
+      eventTarget.addEventListener("scroll", handleScroll, { passive: true });
       cleanup = () => {
-        scroller.removeEventListener("scroll", handleScroll);
+        eventTarget.removeEventListener("scroll", handleScroll);
         cancelAnimationFrame(rafId);
       };
     };
@@ -169,6 +473,10 @@ export default function Home() {
         FaFacebook:  <FaFacebook size={16} />,
         SiGithub:    <SiGithub size={16} />,
         SiTelegram:  <SiTelegram size={16} />,
+        SiDiscord:   <SiDiscord size={16} />,
+        SiX:         <SiX size={16} />,
+        SiInstagram: <SiInstagram size={16} />,
+        MdEmail:     <MdEmail size={16} />,
       };
       setSocialLinks(
         data.map((s) => ({
@@ -414,7 +722,7 @@ export default function Home() {
 
       {/* ── Navigation ── */}
       <nav
-        className="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-6 sm:px-12 lg:px-[192px] py-5 backdrop-blur-xl transition-colors duration-300"
+        className="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-6 sm:px-12 lg:px-[280px] py-5 backdrop-blur-xl transition-colors duration-300"
         style={{ borderBottom: `1px solid ${t.border}`, backgroundColor: `${t.bg}b3` }}
       >
         <button
@@ -434,81 +742,16 @@ export default function Home() {
             Available for work
           </div>
           <ThemeButton />
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="ml-2 flex flex-col gap-1.5"
-            aria-label="Menu"
-          >
-            <span className="block w-5 h-px" style={{ backgroundColor: t.textMuted }} />
-            <span className="block w-5 h-px" style={{ backgroundColor: t.textMuted }} />
-          </button>
         </div>
 
         <div className="md:hidden flex items-center gap-2">
           <ThemeButton />
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="flex flex-col gap-1.5"
-            aria-label="Menu"
-          >
-            <span className="block w-5 h-px" style={{ backgroundColor: t.textMuted }} />
-            <span className="block w-5 h-px" style={{ backgroundColor: t.textMuted }} />
-          </button>
         </div>
       </nav>
 
-      {/* ── Dropdown Menu ── */}
-      {menuOpen && (
-        <div
-          className="fixed top-16 right-6 sm:right-12 lg:right-[192px] z-10 rounded-2xl p-4 flex flex-col gap-1 min-w-[180px] shadow-xl"
-          style={{ backgroundColor: t.bgCard, border: `1px solid ${t.border}` }}
-        >
-          <button
-            onClick={() => { setShowCV(true); setMenuOpen(false); }}
-            className="text-sm text-left px-3 py-2 rounded-lg transition-colors hover:bg-black/5"
-            style={{ color: t.textMuted }}
-            onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.color = "#a3e635"; }}
-            onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.color = t.textMuted; }}
-          >
-            Curriculum Vitae &#x2197;
-          </button>
-          <a href="#projects" onClick={() => setMenuOpen(false)}
-            className="text-sm px-3 py-2 rounded-lg transition-colors hover:bg-black/5"
-            style={{ color: t.textMuted }}
-            onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => { e.currentTarget.style.color = "#22d3ee"; }}
-            onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => { e.currentTarget.style.color = t.textMuted; }}
-          >
-            Projects &#x2197;
-          </a>
-          <a href="#certificates" onClick={() => setMenuOpen(false)}
-            className="text-sm px-3 py-2 rounded-lg transition-colors hover:bg-black/5"
-            style={{ color: t.textMuted }}
-            onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => { e.currentTarget.style.color = "#f97316"; }}
-            onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => { e.currentTarget.style.color = t.textMuted; }}
-          >
-            Certificates &#x2197;
-          </a>
-          <a href="#tools" onClick={() => setMenuOpen(false)}
-            className="text-sm px-3 py-2 rounded-lg transition-colors hover:bg-black/5"
-            style={{ color: t.textMuted }}
-            onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => { e.currentTarget.style.color = "#e879f9"; }}
-            onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => { e.currentTarget.style.color = t.textMuted; }}
-          >
-            Tools &#x2197;
-          </a>
-          <a href="#contact" onClick={() => setMenuOpen(false)}
-            className="text-sm px-3 py-2 rounded-lg transition-colors hover:bg-black/5"
-            style={{ color: t.textMuted }}
-            onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => { e.currentTarget.style.color = "#a3e635"; }}
-            onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => { e.currentTarget.style.color = t.textMuted; }}
-          >
-            Contact &#x2197;
-          </a>
-        </div>
-      )}
 
       {/* ── Hero ── */}
-      <section id="hero" className="relative min-h-0 md:min-h-screen flex flex-col justify-start pb-12 md:pb-24 px-6 sm:px-12 lg:px-[192px] pt-20 md:pt-32">
+      <section id="hero" className="relative min-h-0 md:min-h-screen flex flex-col justify-start pb-12 md:pb-24 px-6 sm:px-12 lg:px-[280px] pt-20 md:pt-32">
         <div className="mb-8">
           <span
             className="inline-flex items-center gap-2 text-xs rounded-full px-4 py-1.5"
@@ -531,8 +774,8 @@ export default function Home() {
         <div className="flex flex-col md:flex-row md:items-end gap-8 max-w-5xl">
           <p className="text-sm leading-relaxed max-w-sm" style={{ color: t.textMuted }}>
             <span className="font-semibold" style={{ color: t.text }}>Mariel Inojales</span> is an{" "}
-            <span className="font-semibold" style={{ color: t.text }}>IT Student &amp; Frontend Developer</span>{" "}
-            based in Davao, Philippines. Passionate about building responsive, data-driven web applications.
+            <span className="font-semibold" style={{ color: t.text }}>IT student and frontend developer</span>{" "}
+            focused on building responsive, user-centered digital systems that turn ideas into real functionality.
           </p>
           <div className="flex gap-3 flex-shrink-0">
             <button
@@ -577,9 +820,8 @@ export default function Home() {
           >
             {/* Floating GIF cards — tap pfp to reveal, tap card to open */}
             {([
-              { label: "About",        color: "#a3e635", caption: "Who I am",  image: "/About.gif",        pos: "top"    },
+              { label: "Projects",     color: "#f97316", caption: "My work",   image: "/Projects.gif",     pos: "top"    },
               { label: "Certificates", color: "#22d3ee", caption: "My certs",  image: "/Certificates.gif", pos: "right"  },
-              { label: "Projects",     color: "#f97316", caption: "My work",   image: "/Projects.gif",     pos: "bottom" },
               { label: "Contact",      color: "#e879f9", caption: "Reach me",  image: "/Contact.gif",      pos: "left"   },
             ] as { label: string; color: string; caption: string; image: string; pos: string }[]).map((item) => {
               const isHov = hoveredSlice === item.label;
@@ -719,7 +961,7 @@ export default function Home() {
           className="hidden md:flex absolute items-center justify-center"
           style={{
             bottom: 96,
-            right: "clamp(32px, 10vw, 192px)",
+            right: "clamp(32px, 10vw, 280px)",
             width: "clamp(420px, 45vw, 680px)",
             height: "clamp(420px, 45vw, 680px)",
           }}
@@ -728,9 +970,8 @@ export default function Home() {
         >
           {/* Floating GIF cards — top, right, bottom, left */}
           {([
-            { label: "About",        color: "#a3e635", caption: "Who I am",  image: "/About.gif",  pos: "top"    },
+            { label: "Projects",     color: "#f97316", caption: "My work",   image: "/Projects.gif",pos: "top"    },
             { label: "Certificates", color: "#22d3ee", caption: "My certs",  image: "/Certificates.gif",   pos: "right"  },
-            { label: "Projects",     color: "#f97316", caption: "My work",   image: "/Projects.gif",pos: "bottom" },
             { label: "Contact",      color: "#e879f9", caption: "Reach me",  image: "/Contact.gif", pos: "left"   },
           ] as { label: string; color: string; caption: string; image: string; pos: string }[]).map((item) => {
             const isHov = hoveredSlice === item.label;
@@ -849,9 +1090,249 @@ export default function Home() {
 
 
 
-      {/* ── Tools ── */}
-      <section id="tools" className="px-6 sm:px-12 lg:px-[192px] py-16 md:py-32" style={{ borderTop: `1px solid ${t.border}` }}>
-        <p className="text-xs uppercase tracking-widest mb-4" style={{ color: t.textFaint }}> Tools</p>
+      {/* ── Tools (with About + Gallery + Journey at top) ── */}
+      <section id="tools" className="px-6 sm:px-12 lg:px-[280px] pt-10 pb-16 md:pt-14 md:pb-32" style={{ borderTop: `1px solid ${t.border}` }}>
+
+        {/* ── About ── */}
+        <div className="mb-12">
+  <p
+    className="text-xs uppercase tracking-widest mb-2"
+    style={{ color: t.textFaint }}
+  >
+    About
+  </p>
+
+  <h2
+    className="text-[clamp(2.5rem,6vw,5rem)] font-bold tracking-tight mb-3"
+    style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: t.text }}
+  >
+    The Mind Behind
+  </h2>
+
+  <p
+    className="text-sm max-w-md leading-relaxed"
+    style={{ color: t.textMuted }}
+  >
+    <span className="font-semibold" style={{ color: t.text }}>
+      Mariel Inojales
+    </span>{" "}
+    is an{" "}
+    <span className="font-semibold" style={{ color: t.text }}>
+      IT student and Frontend Developer
+    </span>{" "}
+    who builds modern digital systems focused on interaction,
+    functionality, and meaningful user experiences.
+  </p>
+</div>
+
+        {/* ── Journey ── */}
+        <div className="mb-20 text-center">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a3e635" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <p className="text-xs uppercase tracking-widest font-semibold" style={{ color: "#a3e635" }}>My Journey</p>
+          </div>
+          <h3
+            className="text-[clamp(2rem,5vw,3.5rem)] font-bold tracking-tight mb-2 leading-tight"
+            style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: t.text }}
+          >
+            Experience Timeline
+          </h3>
+          <p className="text-sm mb-10" style={{ color: t.textMuted }}>Insights gained across each stage of growth .</p>
+
+          <div className="relative max-w-2xl mx-auto text-left" ref={timelineRef}>
+            {/* Rail track */}
+            <div
+              className="absolute left-0 top-0 bottom-0"
+              style={{ width: 2, backgroundColor: dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)" }}
+            />
+            {/* Growing progress bar */}
+            <div
+              className="absolute left-0 top-0"
+              style={{
+                width: 2,
+                height: `${scrollProgress}px`,
+                backgroundColor: "#a3e635",
+                boxShadow: "0 0 6px rgba(163,230,53,0.5)",
+              }}
+            />
+            {/* Fixed dot at the very top */}
+            <div
+              className="absolute"
+              style={{
+                left: -3, top: 0,
+                width: 8, height: 8,
+                borderRadius: "50%",
+                backgroundColor: "#a3e635",
+                boxShadow: "0 0 10px rgba(163,230,53,0.7)",
+              }}
+            />
+
+            <div className="space-y-14 pl-8">
+              {([
+                {
+                  year: "Junior High",
+                  badge: "Early Days",
+                  title: "The First Line of Code",
+                  subtitle: "Self-taught · Online",
+                  text: "Before IT was even a career plan, I was already writing HTML and CSS in junior high school. Something about making things appear on a screen just clicked — and that curiosity never left.",
+                  badges: ["HTML", "CSS"],
+                },
+                {
+                  year: "Senior High · Dec. 2019",
+                  badge: "Certified",
+                  title: "TVL – CSS NCII Passer",
+                  subtitle: "Davao City, Philippines",
+                  text: "Passed the Technical-Vocational-Livelihood track with a Computer Systems Servicing NC2 certification — an early proof that the tech path was always the right one.",
+                  badges: ["NCII Certified", "Computer Systems Servicing", "TVL Track"],
+                },
+                {
+                  year: "2022",
+                  badge: "Student",
+                  title: "Enrolled at HCDC",
+                  subtitle: "Holy Cross of Davao College · Davao City",
+                  text: "I chose to pursue IT at Holy Cross of Davao College — not by accident, but because I already knew this was the field for me. Formal training gave structure to the curiosity I'd been carrying for years.",
+                  badges: ["BS Information Technology", "HCDC", "Davao"],
+                },
+                {
+                  year: "2023–2024",
+                  badge: "Self-study",
+                  title: "Leveling Up",
+                  subtitle: "Remote · Online Platforms",
+                  text: "Started going beyond the classroom — picking up React, Next.js, and Tailwind, earning certificates from Udemy and Simplilearn, and building real projects that pushed me further than any assignment could.",
+                  badges: ["React", "Next.js", "Tailwind CSS", "Supabase", "Udemy", "Simplilearn"],
+                },
+                {
+                  year: "2025-2026",
+                  badge: "4th Year",
+                  title: "Capstone/Thesis Phase",
+                  subtitle: "Holy Cross of Davao College · Davao City",
+                  text: "I contributed to the development of Cross AR: An Augmented Reality Journey Through HCDC’s Legacy, a 4-member capstone project focused on creating an AR-based campus experience. My main responsibility was the project documentation, where I worked on the research papers, system write-ups, and structured the technical and conceptual requirements of the study. I also collaborated with the team throughout the planning phase to ensure the system objectives and scope were clearly defined and aligned with the project goals.",
+                  badges: ["Capstone"],
+                },
+                {
+                  year: "2025",
+                  badge: "Final Year",
+                  title: "Soon-to-be Graduate",
+                  subtitle: "Holy Cross of Davao College · Davao City",
+                  text: "Almost at the finish line at HCDC — but this isn't the end of the journey, it's the beginning. Looking for opportunities to build real products, grow as a developer, and make a real impact.",
+                  badges: ["Capstone", "Available for Work"],
+                },
+                {
+                  year: "2026 →",
+                  badge: "Open to Work",
+                  title: "The Road to Full Stack",
+                  subtitle: "Davao City, Philippines",
+                  text: "The goal is clear — become a full stack developer. Every day is another rep: sharpening skills, building projects, and pushing further into both frontend and backend.",
+                  badges: ["Full Stack", "Node.js", "PHP", "MySQL"],
+                },
+              ] as { year: string; badge: string; title: string; subtitle: string; text: string; badges: string[] }[]).map((step, i) => {
+                const isActive = activeStep === i;
+                return (
+                  <div
+                    key={step.year}
+                    className="relative transition-all duration-500"
+                    ref={(el) => { stepRefs.current[i] = el; }}
+                    style={{
+                      opacity: isActive ? 1 : 0.25,
+                      transform: isActive ? "translateX(6px)" : "translateX(0)",
+                    }}
+                  >
+                    {/* Badge chip */}
+                    <span
+                      className="inline-block text-[11px] font-semibold px-3 py-1 rounded-full mb-3"
+                      style={{
+                        backgroundColor: isActive
+                          ? "rgba(163,230,53,0.12)"
+                          : dark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
+                        color: isActive ? "#a3e635" : t.textMuted,
+                        border: isActive ? "1px solid rgba(163,230,53,0.3)" : `1px solid ${t.border}`,
+                      }}
+                    >
+                      {step.badge}
+                    </span>
+
+                    {/* Big serif title */}
+                    <h4
+                      className="text-[clamp(1.4rem,3vw,2rem)] font-bold leading-tight mb-1 transition-colors duration-500"
+                      style={{
+                        fontFamily: "Georgia, 'Times New Roman', serif",
+                        color: isActive ? t.text : t.textMuted,
+                      }}
+                    >
+                      {step.title}
+                    </h4>
+
+                    {/* Subtitle / location */}
+                    <p
+                      className="text-sm mb-3 font-medium transition-colors duration-500"
+                      style={{ color: isActive ? "#a3e635" : t.textFaint }}
+                    >
+                      {step.subtitle}
+                    </p>
+
+                    {/* Year */}
+                    <p
+                      className="text-xs uppercase tracking-widest mb-3 transition-colors duration-500"
+                      style={{ color: isActive ? t.textMuted : t.textFaint }}
+                    >
+                      {step.year}
+                    </p>
+
+                    {/* Body text */}
+                    <p
+                      className="text-sm leading-relaxed mb-4 transition-colors duration-500"
+                      style={{ color: isActive ? t.textMuted : t.textFaint }}
+                    >
+                      {step.text}
+                    </p>
+
+                    {/* Badges */}
+                    <div className="flex flex-wrap gap-1.5">
+                      {step.badges.map((badge) => (
+                        <span
+                          key={badge}
+                          className="text-[10px] px-2.5 py-1 rounded-full font-medium transition-all duration-500"
+                          style={{
+                            backgroundColor: isActive
+                              ? dark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)"
+                              : "transparent",
+                            border: `1px solid ${isActive ? t.border : "transparent"}`,
+                            color: isActive ? t.textMuted : t.textFaint,
+                          }}
+                        >
+                          {badge}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* ── Gallery ── */}
+        <div className="mb-20">
+          <div className="flex items-center gap-2 mb-6">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <p className="text-xs uppercase tracking-widest font-semibold" style={{ color: "#22d3ee" }}>Gallery</p>
+          </div>
+          <ImageCarousel
+            images={[
+              { src: "/Certificate1.png", alt: "NCII Certificate" },
+              { src: "/Certificate2.png", alt: "JavaScript Course" },
+              { src: "/Certificate3.png", alt: "React Certificate" },
+              { src: "/Certificate4.png", alt: "Python Certificate" },
+              { src: "/Certificate5.png", alt: "Web Development" },
+              { src: "/Certificate6.png", alt: "UI/UX Design" },
+            ]}
+            theme={{ bgCard: t.bgCard, border: t.border, textMuted: t.textMuted, text: t.text }}
+            dark={dark}
+          />
+        </div>
+
+        {/* ── Tools Dock ── */}
+        <p className="text-xs uppercase tracking-widest mb-4" style={{ color: t.textFaint }}>Tools</p>
         <h2
           className="text-[clamp(2.5rem,6vw,5rem)] font-bold tracking-tight mb-4"
           style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: t.text }}
@@ -862,92 +1343,8 @@ export default function Home() {
           The software and tools I reach for when building, designing, and creating.
         </p>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          {[
-            {
-              name: "Visual Studio Code", category: "Code Editor", desc: "Primary editor for web development", color: "#22d3ee",
-              icon: (
-                <svg viewBox="0 0 24 24" width="28" height="28" fill="none">
-                  <path d="M17 1.5L1.5 9l4.25 3.25L17 5.5V1.5z" fill="#22d3ee" opacity="0.9"/>
-                  <path d="M17 22.5L1.5 15l4.25-3.25L17 18.5v4z" fill="#22d3ee" opacity="0.9"/>
-                  <path d="M17 1.5v4L5.75 12.25 17 18.5v4l5-2.5V4L17 1.5z" fill="#22d3ee"/>
-                </svg>
-              ),
-            },
-            {
-              name: "Visual Studio 2022", category: "IDE", desc: "Full-featured IDE for larger projects", color: "#a855f7",
-              icon: (
-                <svg viewBox="0 0 24 24" width="28" height="28" fill="none">
-                  <path d="M17 1.5L1.5 9l4.25 3.25L17 5.5V1.5z" fill="#a855f7" opacity="0.9"/>
-                  <path d="M17 22.5L1.5 15l4.25-3.25L17 18.5v4z" fill="#a855f7" opacity="0.9"/>
-                  <path d="M17 1.5v4L5.75 12.25 17 18.5v4l5-2.5V4L17 1.5z" fill="#a855f7"/>
-                </svg>
-              ),
-            },
-            {
-              name: "Microsoft Excel", category: "Spreadsheets", desc: "Data analysis and reporting", color: "#22c55e",
-              icon: (
-                <svg viewBox="0 0 24 24" width="28" height="28" fill="none">
-                  <rect x="2" y="3" width="20" height="18" rx="2" fill="#22c55e" opacity="0.15"/>
-                  <rect x="2" y="3" width="20" height="18" rx="2" stroke="#22c55e" strokeWidth="1.5"/>
-                  <path d="M8 8l3 4-3 4M16 8l-3 4 3 4" stroke="#22c55e" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              ),
-            },
-            {
-              name: "Microsoft Word", category: "Documents", desc: "Documentation and reports", color: "#3b82f6",
-              icon: (
-                <svg viewBox="0 0 24 24" width="28" height="28" fill="none">
-                  <rect x="2" y="3" width="20" height="18" rx="2" fill="#3b82f6" opacity="0.15"/>
-                  <rect x="2" y="3" width="20" height="18" rx="2" stroke="#3b82f6" strokeWidth="1.5"/>
-                  <path d="M7 8l2.5 8L12 10l2.5 6L17 8" stroke="#3b82f6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              ),
-            },
-            {
-              name: "Canva", category: "Design", desc: "Graphics, posters & presentations", color: "#f97316",
-              icon: (
-                <svg viewBox="0 0 24 24" width="28" height="28" fill="none">
-                  <circle cx="12" cy="12" r="9" fill="#f97316" opacity="0.15" stroke="#f97316" strokeWidth="1.5"/>
-                  <circle cx="9" cy="10" r="2" fill="#f97316"/>
-                  <circle cx="15" cy="14" r="2" fill="#f97316" opacity="0.7"/>
-                  <path d="M9 12c0 2 1.5 4 3 4s3-1.5 3-3" stroke="#f97316" strokeWidth="1.5" strokeLinecap="round"/>
-                </svg>
-              ),
-            },
-            {
-              name: "CapCut", category: "Video Editing", desc: "Video editing and content creation", color: "#e879f9",
-              icon: (
-                <svg viewBox="0 0 24 24" width="28" height="28" fill="none">
-                  <rect x="3" y="6" width="14" height="12" rx="2" fill="#e879f9" opacity="0.15" stroke="#e879f9" strokeWidth="1.5"/>
-                  <path d="M17 9.5l4-2v9l-4-2" stroke="#e879f9" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M8 10v4M10 12H6" stroke="#e879f9" strokeWidth="1.5" strokeLinecap="round"/>
-                </svg>
-              ),
-            },
-          ].map((tool, i) => (
-            <div
-              key={i}
-              className="group rounded-2xl p-6 transition-all duration-300"
-              style={{ backgroundColor: t.bgCard, border: `1px solid ${t.border}` }}
-              onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => {
-                e.currentTarget.style.borderColor = tool.color + "55";
-                e.currentTarget.style.transform = "translateY(-2px)";
-              }}
-              onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => {
-                e.currentTarget.style.borderColor = t.border;
-                e.currentTarget.style.transform = "translateY(0)";
-              }}
-            >
-              <div className="mb-4">{tool.icon}</div>
-              <p className="text-[10px] uppercase tracking-widest font-bold mb-1.5" style={{ color: tool.color }}>
-                {tool.category}
-              </p>
-              <h3 className="text-sm font-semibold mb-1" style={{ color: t.text }}>{tool.name}</h3>
-              <p className="text-xs leading-relaxed" style={{ color: t.textMuted }}>{tool.desc}</p>
-            </div>
-          ))}
-        </div>
+        {/* macOS Dock */}
+        <DockToolbar dark={dark} t={t} />
 
         {/* ── Footer ── */}
         <div
@@ -967,7 +1364,7 @@ export default function Home() {
         >
           <GridBg />
           <div
-            className="sticky top-0 z-10 flex items-center justify-between px-6 sm:px-12 lg:px-[192px] py-5 backdrop-blur-xl"
+            className="sticky top-0 z-10 flex items-center justify-between px-6 sm:px-12 lg:px-[280px] py-5 backdrop-blur-xl"
             style={{ borderBottom: `1px solid ${t.border}`, backgroundColor: `${t.bg}cc` }}
           >
             <button
@@ -983,7 +1380,7 @@ export default function Home() {
               Curriculum Vitae
             </span>
           </div>
-          <div className="px-6 sm:px-12 lg:px-[192px] py-16">
+          <div className="px-6 sm:px-12 lg:px-[280px] py-16">
             <p className="text-xs uppercase tracking-widest mb-6" style={{ color: t.textFaint }}>Curriculum Vitae</p>
             <h2
               className="text-[clamp(1.8rem,4vw,3.5rem)] font-bold tracking-tight mb-10"
@@ -1006,7 +1403,7 @@ export default function Home() {
         >
           <GridBg />
           <div
-            className="sticky top-0 z-10 flex items-center justify-between px-6 sm:px-12 lg:px-[192px] py-5 backdrop-blur-xl"
+            className="sticky top-0 z-10 flex items-center justify-between px-6 sm:px-12 lg:px-[280px] py-5 backdrop-blur-xl"
             style={{ borderBottom: `1px solid ${t.border}`, backgroundColor: `${t.bg}cc` }}
           >
             <button
@@ -1023,7 +1420,7 @@ export default function Home() {
             </span>
           </div>
 
-          <div className="px-6 sm:px-12 lg:px-[192px] py-16 flex flex-col lg:flex-row gap-16">
+          <div className="px-6 sm:px-12 lg:px-[280px] py-16 flex flex-col lg:flex-row gap-16">
             <div className="flex-1 min-w-0">
               <p className="text-xs uppercase tracking-widest mb-6" style={{ color: t.textFaint }}>Certificate Details</p>
               <h2
@@ -1149,7 +1546,7 @@ export default function Home() {
 
           {/* Top bar */}
           <div
-            className="sticky top-0 z-10 flex items-center justify-between px-6 sm:px-12 lg:px-[192px] py-5 backdrop-blur-xl"
+            className="sticky top-0 z-10 flex items-center justify-between px-6 sm:px-12 lg:px-[280px] py-5 backdrop-blur-xl"
             style={{ borderBottom: `1px solid ${t.border}`, backgroundColor: `${t.bg}cc` }}
           >
             <button
@@ -1166,7 +1563,7 @@ export default function Home() {
             </span>
           </div>
 
-          <div className="px-6 sm:px-12 lg:px-[192px] py-16">
+          <div className="px-6 sm:px-12 lg:px-[280px] py-16">
             <p className="text-xs uppercase tracking-widest mb-6" style={{ color: t.textFaint }}>{radialOpen}</p>
             <h2
               className="text-[clamp(1.8rem,4vw,3.5rem)] font-bold tracking-tight mb-10"
@@ -1177,225 +1574,15 @@ export default function Home() {
 
             {/* About */}
             {radialOpen === "About" && (
-              <div className="max-w-2xl mx-auto space-y-10">
-
-                {/* Profile header */}
-                <div className="flex flex-col items-center gap-4 text-center">
-                  <img src="/pfp.jpg" alt="Mariel" className="w-32 h-32 rounded-full object-cover flex-shrink-0" style={{ border: `1px solid ${t.border}` }} />
-                  <div>
-                    <p className="text-xl font-semibold" style={{ color: t.text }}>Mariel Inojales</p>
-                    <p className="text-sm" style={{ color: t.textMuted }}>IT Student · Holy Cross of Davao College</p>
-                    <span className="inline-flex items-center gap-1 text-[11px] mt-1 rounded-full px-2 py-0.5" style={{ background: "#E1F5EE", color: "#0F6E56", border: "1px solid #1D9E75" }}>
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#1D9E75] inline-block animate-pulse" /> Available for work
-                    </span>
-                  </div>
-                </div>
-
-
-
-                {/* Journey Timeline */}
-                <div className="text-center">
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                    <p className="text-xs uppercase tracking-widest font-semibold" style={{ color: "#22d3ee" }}>My Journey</p>
-                  </div>
-                  <h3
-                    className="text-[clamp(2rem,5vw,3.5rem)] font-bold tracking-tight mb-2 leading-tight"
-                    style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: t.text }}
-                  >
-                    Milestones
-                  </h3>
-                  <p className="text-sm mb-10" style={{ color: t.textMuted }}>Valuable insights gained along the way.</p>
-
-                  <div className="relative" ref={timelineRef}>
-                    {/* Rail track */}
-                    <div
-                      className="absolute left-0 top-0 bottom-0"
-                      style={{ width: 2, backgroundColor: dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)" }}
-                    />
-                    {/* Growing progress bar — lime, height tracks active step */}
-                    <div
-                      className="absolute left-0 top-0"
-                      style={{
-                        width: 2,
-                        height: `${scrollProgress}px`,
-                        backgroundColor: "#a3e635",
-                        boxShadow: "0 0 6px rgba(163,230,53,0.5)",
-                      }}
-                    />
-                    {/* Fixed dot at the very top of the timeline */}
-                    <div
-                      className="absolute"
-                      style={{
-                        left: -3, top: 0,
-                        width: 8, height: 8,
-                        borderRadius: "50%",
-                        backgroundColor: "#a3e635",
-                        boxShadow: "0 0 10px rgba(163,230,53,0.7)",
-                      }}
-                    />
-
-                    <div className="space-y-14 pl-8">
-                      {([
-                        // ─────────────────────────────────────────────────────────
-                        // ✏️  MY JOURNEY STEPS — add, remove, or reorder here.
-                        //     Each step needs: year, badge, title, subtitle, text, badges[]
-                        //     Steps are displayed in REVERSE order (newest first at top).
-                        // ─────────────────────────────────────────────────────────
-                        {
-                          year: "Junior High",
-                          badge: "Early Days",
-                          title: "The First Line of Code",
-                          subtitle: "Self-taught · Online",
-                          text: "Before IT was even a career plan, I was already writing HTML and CSS in junior high school. Something about making things appear on a screen just clicked — and that curiosity never left.",
-                          badges: ["HTML", "CSS"],
-                        },
-                        {
-                          year: "Senior High · Dec. 2019",
-                          badge: "Certified",
-                          title: "TVL – CSS NC2 Passer",
-                          subtitle: "Davao City, Philippines",
-                          text: "Passed the Technical-Vocational-Livelihood track with a Computer Systems Servicing NC2 certification — an early proof that the tech path was always the right one.",
-                          badges: ["NC2 Certified", "Computer Systems Servicing", "TVL Track"],
-                        },
-                        {
-                          year: "2022",
-                          badge: "Student",
-                          title: "Enrolled at HCDC",
-                          subtitle: "Holy Cross of Davao College · Davao City",
-                          text: "I chose to pursue IT at Holy Cross of Davao College — not by accident, but because I already knew this was the field for me. Formal training gave structure to the curiosity I'd been carrying for years.",
-                          badges: ["BS Information Technology", "HCDC", "Davao"],
-                        },
-                        {
-                          year: "2023–2024",
-                          badge: "Self-study",
-                          title: "Leveling Up",
-                          subtitle: "Remote · Online Platforms",
-                          text: "Started going beyond the classroom — picking up React, Next.js, and Tailwind, earning certificates from Udemy and Simplilearn, and building real projects that pushed me further than any assignment could.",
-                          badges: ["React", "Next.js", "Tailwind CSS", "Supabase", "Udemy", "Simplilearn"],
-                        },
-                        {
-                          year: "2025",
-                          badge: "Final Year",
-                          title: "Soon-to-be Graduate",
-                          subtitle: "Holy Cross of Davao College · Davao City",
-                          text: "Almost at the finish line at HCDC — but this isn't the end of the journey, it's the beginning. Looking for opportunities to build real products, grow as a developer, and make a real impact.",
-                          badges: ["Capstone", "Available for Work"],
-                        },
-                        {
-                          year: "2026 →",
-                          badge: "Open to Work",
-                          title: "The Road to Full Stack",
-                          subtitle: "Davao City, Philippines",
-                          text: "The goal is clear — become a full stack developer. Every day is another rep: sharpening skills, building projects, and pushing further into both frontend and backend.",
-                          badges: ["Full Stack", "Node.js", "PHP", "MySQL"],
-                        },
-                      ] as { year: string; badge: string; title: string; subtitle: string; text: string; badges: string[] }[]).reverse().map((step, i) => {
-                        const isActive = activeStep === i;
-                        return (
-                        <div
-                          key={step.year}
-                          className="relative transition-all duration-500"
-                          ref={(el) => { stepRefs.current[i] = el; }}
-                          style={{
-                            opacity: isActive ? 1 : 0.25,
-                            transform: isActive ? "translateX(6px)" : "translateX(0)",
-                          }}
-                        >
-                          {/* Badge chip */}
-                          <span
-                            className="inline-block text-[11px] font-semibold px-3 py-1 rounded-full mb-3"
-                            style={{
-                              backgroundColor: isActive
-                                ? "rgba(163,230,53,0.12)"
-                                : dark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
-                              color: isActive ? "#a3e635" : t.textMuted,
-                              border: isActive ? "1px solid rgba(163,230,53,0.3)" : `1px solid ${t.border}`,
-                            }}
-                          >
-                            {step.badge}
-                          </span>
-
-                          {/* Big serif title */}
-                          <h4
-                            className="text-[clamp(1.4rem,3vw,2rem)] font-bold leading-tight mb-1 transition-colors duration-500"
-                            style={{
-                              fontFamily: "Georgia, 'Times New Roman', serif",
-                              color: isActive ? t.text : t.textMuted,
-                            }}
-                          >
-                            {step.title}
-                          </h4>
-
-                          {/* Subtitle / location */}
-                          <p
-                            className="text-sm mb-3 font-medium transition-colors duration-500"
-                            style={{ color: isActive ? "#a3e635" : t.textFaint }}
-                          >
-                            {step.subtitle}
-                          </p>
-
-                          {/* Year */}
-                          <p
-                            className="text-xs uppercase tracking-widest mb-3 transition-colors duration-500"
-                            style={{ color: isActive ? t.textMuted : t.textFaint }}
-                          >
-                            {step.year}
-                          </p>
-
-                          {/* Body text */}
-                          <p
-                            className="text-sm leading-relaxed mb-4 transition-colors duration-500"
-                            style={{ color: isActive ? t.textMuted : t.textFaint }}
-                          >
-                            {step.text}
-                          </p>
-
-                          {/* Badges */}
-                          <div className="flex flex-wrap gap-1.5">
-                            {step.badges.map((badge) => (
-                              <span
-                                key={badge}
-                                className="text-[10px] px-2.5 py-1 rounded-full font-medium transition-all duration-500"
-                                style={{
-                                  backgroundColor: isActive
-                                    ? dark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)"
-                                    : "transparent",
-                                  border: `1px solid ${isActive ? t.border : "transparent"}`,
-                                  color: isActive ? t.textMuted : t.textFaint,
-                                }}
-                              >
-                                {badge}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Gallery carousel — replace the placeholder images with your own */}
-                <div>
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                    <p className="text-xs uppercase tracking-widest font-semibold" style={{ color: "#22d3ee" }}>Gallery</p>
-                  </div>
-                  <ImageCarousel
-                    images={[
-                      { src: "/Certificate1.png", alt: "NC2 Certificate" },
-                      { src: "/Certificate2.png", alt: "JavaScript Course" },
-                      { src: "/Certificate3.png", alt: "React Certificate" },
-                      { src: "/Certificate4.png", alt: "Python Certificate" },
-                      { src: "/Certificate5.png", alt: "Web Development" },
-                      { src: "/Certificate6.png", alt: "UI/UX Design" },
-                    ]}
-                    theme={{ bgCard: t.bgCard, border: t.border, textMuted: t.textMuted, text: t.text }}
-                    dark={dark}
-                  />
-                </div>
-
+              <div className="max-w-2xl">
+                <p className="text-sm leading-relaxed mb-6" style={{ color: t.textMuted }}>
+                  <span className="font-semibold" style={{ color: t.text }}>Mariel Inojales</span> is an{" "}
+                  <span className="font-semibold" style={{ color: t.text }}>IT Student &amp; Frontend Developer</span>{" "}
+                  based in Davao, Philippines. I build modern digital systems focused on interaction, functionality, and meaningful user experiences.
+                </p>
+                <p className="text-sm" style={{ color: t.textFaint }}>
+                  Scroll down on the main page to explore my Journey, Gallery, and Tools.
+                </p>
               </div>
             )}
 
