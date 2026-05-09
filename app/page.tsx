@@ -1113,15 +1113,7 @@ export default function Home() {
     className="text-sm max-w-md leading-relaxed"
     style={{ color: t.textMuted }}
   >
-    <span className="font-semibold" style={{ color: t.text }}>
-      Mariel Inojales
-    </span>{" "}
-    is an{" "}
-    <span className="font-semibold" style={{ color: t.text }}>
-      IT student and Frontend Developer
-    </span>{" "}
-    who builds modern digital systems focused on interaction,
-    functionality, and meaningful user experiences.
+    A self-taught learner who started from scratch and grew through consistent hands-on development.
   </p>
 </div>
 
