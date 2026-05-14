@@ -227,7 +227,7 @@ function DockToolbar({ dark, t }: { dark: boolean; t: Theme }) {
             transition: "opacity 0.15s ease", whiteSpace: "nowrap", zIndex: 10,
           }}>
             <div className="text-xs font-semibold px-3 py-1.5 rounded-lg" style={{
-              background: dark ? "rgba(30,30,30,0.95)" : "rgba(255,255,255,0.95)",
+              background: "rgba(30,30,30,0.95)",
               color: t.text, border: `1px solid ${t.border}`,
               boxShadow: "0 4px 16px rgba(0,0,0,0.25)",
             }}>
@@ -238,7 +238,7 @@ function DockToolbar({ dark, t }: { dark: boolean; t: Theme }) {
             </div>
             <div style={{
               width: 8, height: 8,
-              background: dark ? "rgba(30,30,30,0.95)" : "rgba(255,255,255,0.95)",
+              background: "rgba(30,30,30,0.95)",
               border: `1px solid ${t.border}`, borderTop: "none", borderLeft: "none",
               transform: "rotate(45deg)", margin: "-4px auto 0",
             }} />
@@ -269,21 +269,17 @@ function DockToolbar({ dark, t }: { dark: boolean; t: Theme }) {
   const reflection = (width = "100%") => (
     <div style={{
       width, height: 1, marginTop: 2,
-      background: dark
-        ? "linear-gradient(90deg, transparent, rgba(255,255,255,0.06) 30%, rgba(255,255,255,0.06) 70%, transparent)"
-        : "linear-gradient(90deg, transparent, rgba(0,0,0,0.06) 30%, rgba(0,0,0,0.06) 70%, transparent)",
+      background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.06) 30%, rgba(255,255,255,0.06) 70%, transparent)",
     }} />
   );
 
   const pillStyle: React.CSSProperties = {
     display: "flex", alignItems: "flex-end", gap: 20,
     padding: "16px 24px", borderRadius: 20,
-    background: dark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)",
-    border: `1px solid ${dark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.10)"}`,
+    background: "rgba(255,255,255,0.06)",
+    border: `1px solid rgba(255,255,255,0.10)`,
     backdropFilter: "blur(20px)",
-    boxShadow: dark
-      ? "0 8px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)"
-      : "0 8px 40px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.8)",
+    boxShadow: "0 8px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)",
   };
 
   // ── Mobile ────────────────────────────────────────────────────────
@@ -349,7 +345,7 @@ export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [showSocials, setShowSocials] = useState(false);
   const [selectedCert, setSelectedCert] = useState<Certificate | null>(null);
-  const [dark, setDark] = useState(true);
+  const dark = true;
   const [socialLinks, setSocialLinks] = useState<{ label: string; href: string; icon: React.ReactNode; isEmail?: boolean }[]>([]);
   const [pfpHovered, setPfpHovered] = useState(false);
   const [radialOpen, setRadialOpen] = useState<string | null>(null);
@@ -359,6 +355,13 @@ export default function Home() {
   const stepRefs = useRef<(HTMLDivElement | null)[]>([]);
   const isTouchRef = useRef(false);
   const mobilePfpRef = useRef<HTMLDivElement | null>(null);
+  const [cursorPos, setCursorPos] = useState({ x: -200, y: -200 });
+
+  useEffect(() => {
+    const move = (e: MouseEvent) => setCursorPos({ x: e.clientX, y: e.clientY });
+    window.addEventListener("mousemove", move);
+    return () => window.removeEventListener("mousemove", move);
+  }, []);
 
   const YOUR_EMAIL = "marieljinojales@gmail.com"; // ← change this to your email
 
@@ -370,8 +373,8 @@ export default function Home() {
   };
 
   useEffect(() => {
-    document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
-  }, [dark]);
+    document.documentElement.setAttribute("data-theme", "dark");
+  }, []);
 
   const timelineRef = useRef<HTMLDivElement | null>(null);
   const overlayRef = useRef<HTMLDivElement | null>(null);
@@ -520,81 +523,30 @@ export default function Home() {
     return "#a3e635";
   };
 
-  const t: Theme = dark
-    ? {
-        bg: "#0a0a0a",
-        bgCard: "#111111",
+  const t: Theme = {
+        bg: "#13131a",
+        bgCard: "#1a1a24",
         border: "rgba(255,255,255,0.08)",
         borderHover: "rgba(255,255,255,0.22)",
         text: "#e5e5e5",
-        textMuted: "#6b7280",
-        textFaint: "#374151",
+        textMuted: "#9ca3af",
+        textFaint: "#6b7280",
         gridLine: "rgba(255,255,255,0.04)",
         glow1: "rgba(132,204,22,0.05)",
         glow2: "rgba(6,182,212,0.05)",
         btnHoverBg: "#ffffff",
         btnHoverText: "#000000",
-      }
-    : {
-        bg: "#f5f5f0",
-        bgCard: "#ffffff",
-        border: "rgba(0,0,0,0.10)",
-        borderHover: "rgba(0,0,0,0.28)",
-        text: "#0a0a0a",
-        textMuted: "#52525b",
-        textFaint: "#a1a1aa",
-        gridLine: "rgba(0,0,0,0.05)",
-        glow1: "rgba(132,204,22,0.08)",
-        glow2: "rgba(6,182,212,0.08)",
-        btnHoverBg: "#0a0a0a",
-        btnHoverText: "#ffffff",
       };
-
-  const SunIcon = () => (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <circle cx="12" cy="12" r="5" />
-      <line x1="12" y1="1" x2="12" y2="3" />
-      <line x1="12" y1="21" x2="12" y2="23" />
-      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-      <line x1="1" y1="12" x2="3" y2="12" />
-      <line x1="21" y1="12" x2="23" y2="12" />
-      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-    </svg>
-  );
-
-  const MoonIcon = () => (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-    </svg>
-  );
-
-  const ThemeButton = () => (
-    <button
-      onClick={() => setDark(!dark)}
-      className="w-9 h-9 flex items-center justify-center rounded-full transition-all duration-200"
-      style={{ border: `1px solid ${t.border}`, color: t.textMuted }}
-      aria-label="Toggle theme"
-    >
-      {dark ? <SunIcon /> : <MoonIcon />}
-    </button>
-  );
 
   const GridBg = () => (
     <div className="fixed inset-0 -z-50 overflow-hidden pointer-events-none">
       <div
         className="absolute inset-0"
         style={{
-          background: dark
-            ? `radial-gradient(ellipse 80% 50% at 20% 10%, rgba(132,204,22,0.06) 0%, transparent 60%),
-               radial-gradient(ellipse 60% 40% at 80% 20%, rgba(6,182,212,0.06) 0%, transparent 55%),
-               radial-gradient(ellipse 70% 60% at 50% 80%, rgba(168,85,247,0.04) 0%, transparent 60%),
-               #0a0a0a`
-            : `radial-gradient(ellipse 80% 50% at 20% 10%, rgba(132,204,22,0.09) 0%, transparent 60%),
-               radial-gradient(ellipse 60% 40% at 80% 20%, rgba(6,182,212,0.09) 0%, transparent 55%),
-               radial-gradient(ellipse 70% 60% at 50% 80%, rgba(168,85,247,0.06) 0%, transparent 60%),
-               #f5f5f0`,
+          background: `radial-gradient(ellipse 80% 50% at 20% 10%, rgba(132,204,22,0.10) 0%, transparent 60%),
+               radial-gradient(ellipse 60% 40% at 80% 20%, rgba(6,182,212,0.10) 0%, transparent 55%),
+               radial-gradient(ellipse 70% 60% at 50% 80%, rgba(168,85,247,0.07) 0%, transparent 60%),
+               #13131a`,
         }}
       />
       <div
@@ -611,9 +563,7 @@ export default function Home() {
         className="absolute rounded-full"
         style={{
           width: "600px", height: "500px", top: "-10%", left: "5%",
-          background: dark
-            ? "radial-gradient(circle, rgba(132,204,22,0.07) 0%, transparent 70%)"
-            : "radial-gradient(circle, rgba(132,204,22,0.11) 0%, transparent 70%)",
+          background: "radial-gradient(circle, rgba(132,204,22,0.13) 0%, transparent 70%)",
           animation: "orbFloat1 18s ease-in-out infinite",
           filter: "blur(40px)",
         }}
@@ -622,9 +572,7 @@ export default function Home() {
         className="absolute rounded-full"
         style={{
           width: "500px", height: "500px", top: "10%", right: "0%",
-          background: dark
-            ? "radial-gradient(circle, rgba(6,182,212,0.07) 0%, transparent 70%)"
-            : "radial-gradient(circle, rgba(6,182,212,0.11) 0%, transparent 70%)",
+          background: "radial-gradient(circle, rgba(6,182,212,0.13) 0%, transparent 70%)",
           animation: "orbFloat2 22s ease-in-out infinite",
           filter: "blur(40px)",
         }}
@@ -633,9 +581,7 @@ export default function Home() {
         className="absolute rounded-full"
         style={{
           width: "400px", height: "400px", bottom: "15%", left: "40%",
-          background: dark
-            ? "radial-gradient(circle, rgba(168,85,247,0.05) 0%, transparent 70%)"
-            : "radial-gradient(circle, rgba(168,85,247,0.08) 0%, transparent 70%)",
+          background: "radial-gradient(circle, rgba(168,85,247,0.10) 0%, transparent 70%)",
           animation: "orbFloat3 26s ease-in-out infinite",
           filter: "blur(50px)",
         }}
@@ -643,11 +589,69 @@ export default function Home() {
       <div
         className="absolute inset-0"
         style={{
-          opacity: dark ? 0.025 : 0.04,
+          opacity: 0.025,
           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
           backgroundSize: "200px 200px",
         }}
       />
+
+      {/* Floating particles */}
+      {[
+        { size: 3, top: "12%", left: "8%",  color: "rgba(132,204,22,0.6)",  dur: "8s",  delay: "0s",   drift: "25px" },
+        { size: 2, top: "28%", left: "18%", color: "rgba(6,182,212,0.5)",   dur: "11s", delay: "1.5s", drift: "18px" },
+        { size: 4, top: "55%", left: "6%",  color: "rgba(168,85,247,0.5)",  dur: "9s",  delay: "3s",   drift: "30px" },
+        { size: 2, top: "70%", left: "25%", color: "rgba(132,204,22,0.4)",  dur: "13s", delay: "0.7s", drift: "20px" },
+        { size: 3, top: "85%", left: "12%", color: "rgba(6,182,212,0.6)",   dur: "7s",  delay: "2.2s", drift: "22px" },
+        { size: 2, top: "18%", left: "88%", color: "rgba(168,85,247,0.6)",  dur: "10s", delay: "0.4s", drift: "28px" },
+        { size: 4, top: "40%", left: "92%", color: "rgba(132,204,22,0.5)",  dur: "12s", delay: "1.8s", drift: "15px" },
+        { size: 2, top: "62%", left: "85%", color: "rgba(6,182,212,0.4)",   dur: "8.5s",delay: "3.5s", drift: "25px" },
+        { size: 3, top: "78%", left: "78%", color: "rgba(168,85,247,0.5)",  dur: "9.5s",delay: "1s",   drift: "20px" },
+        { size: 2, top: "90%", left: "65%", color: "rgba(132,204,22,0.6)",  dur: "11s", delay: "2.8s", drift: "18px" },
+        { size: 3, top: "35%", left: "50%", color: "rgba(6,182,212,0.35)",  dur: "14s", delay: "0.2s", drift: "35px" },
+        { size: 2, top: "5%",  left: "55%", color: "rgba(168,85,247,0.45)", dur: "10s", delay: "4s",   drift: "22px" },
+      ].map((p, i) => (
+        <div
+          key={i}
+          className="absolute rounded-full"
+          style={{
+            width: p.size, height: p.size,
+            top: p.top, left: p.left,
+            backgroundColor: p.color,
+            boxShadow: `0 0 ${p.size * 3}px ${p.color}`,
+            animation: `particleFloat ${p.dur} ease-in-out infinite`,
+            animationDelay: p.delay,
+            ["--drift" as string]: p.drift,
+          }}
+        />
+      ))}
+
+      {/* Twinkling stars */}
+      {[
+        { top: "8%",  left: "30%", delay: "0s",   dur: "3s"   },
+        { top: "22%", left: "72%", delay: "1.2s", dur: "2.5s" },
+        { top: "45%", left: "15%", delay: "0.6s", dur: "4s"   },
+        { top: "60%", left: "58%", delay: "2s",   dur: "3.5s" },
+        { top: "75%", left: "42%", delay: "0.3s", dur: "2.8s" },
+        { top: "15%", left: "48%", delay: "1.7s", dur: "3.2s" },
+        { top: "88%", left: "82%", delay: "0.9s", dur: "2.3s" },
+        { top: "33%", left: "95%", delay: "2.4s", dur: "3.8s" },
+        { top: "52%", left: "35%", delay: "1s",   dur: "4.2s" },
+        { top: "95%", left: "20%", delay: "1.5s", dur: "2.7s" },
+      ].map((s, i) => (
+        <div
+          key={`star-${i}`}
+          className="absolute"
+          style={{
+            top: s.top, left: s.left,
+            width: 1.5, height: 1.5,
+            borderRadius: "50%",
+            backgroundColor: "rgba(255,255,255,0.8)",
+            boxShadow: "0 0 4px rgba(255,255,255,0.6)",
+            animation: `starTwinkle ${s.dur} ease-in-out infinite`,
+            animationDelay: s.delay,
+          }}
+        />
+      ))}
     </div>
   );
 
@@ -661,6 +665,22 @@ export default function Home() {
       style={{ backgroundColor: `${t.bg}40`, color: t.text }}
     >
       <GridBg />
+
+      {/* Cursor glow */}
+      <div
+        className="fixed pointer-events-none z-0"
+        style={{
+          left: cursorPos.x,
+          top: cursorPos.y,
+          width: 320,
+          height: 320,
+          borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(132,204,22,0.07) 0%, transparent 70%)",
+          transform: "translate(-50%, -50%)",
+          transition: "left 0.12s ease-out, top 0.12s ease-out",
+          filter: "blur(8px)",
+        }}
+      />
 
       <style>{`
         @keyframes orbFloat1 {
@@ -676,6 +696,21 @@ export default function Home() {
         @keyframes orbFloat3 {
           0%, 100% { transform: translate(0px, 0px) scale(1); }
           50%       { transform: translate(15px, -25px) scale(1.04); }
+        }
+        @keyframes particleFloat {
+          0%   { transform: translateY(0px) translateX(0px); opacity: 0.7; }
+          25%  { transform: translateY(calc(var(--drift) * -1)) translateX(calc(var(--drift) * 0.4)); opacity: 1; }
+          50%  { transform: translateY(calc(var(--drift) * -1.6)) translateX(calc(var(--drift) * -0.3)); opacity: 0.5; }
+          75%  { transform: translateY(calc(var(--drift) * -0.8)) translateX(calc(var(--drift) * 0.6)); opacity: 0.9; }
+          100% { transform: translateY(0px) translateX(0px); opacity: 0.7; }
+        }
+        @keyframes starTwinkle {
+          0%, 100% { opacity: 0.15; transform: scale(1); }
+          50%       { opacity: 1;    transform: scale(1.8); }
+        }
+        @keyframes cursorGlow {
+          0%, 100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
+          50%       { opacity: 0.9; transform: translate(-50%, -50%) scale(1.1); }
         }
         @keyframes marquee {
           0%   { transform: translateX(0); }
@@ -736,16 +771,14 @@ export default function Home() {
         <div className="hidden md:flex items-center gap-2">
           <div
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs"
-            style={{ border: `1px solid #1D9E75`, background: '#E1F5EE', color: '#0F6E56' }}
+            style={{ border: `1px solid #1D9E75`, background: '#0f2e25', color: '#4ade80' }}
           >
             <span className="w-1.5 h-1.5 rounded-full bg-[#1D9E75] animate-pulse" />
             Available for work
           </div>
-          <ThemeButton />
         </div>
 
         <div className="md:hidden flex items-center gap-2">
-          <ThemeButton />
         </div>
       </nav>
 
@@ -766,7 +799,7 @@ export default function Home() {
           style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: t.text }}
         >
           Turning <br />Concepts<br />
-          <span style={{ color: dark ? "rgba(255,255,255,0.85)" : "#000000" }}>
+          <span style={{ color: "rgba(255,255,255,0.85)" }}>
             Into <br />Reality
           </span>
         </h1>
@@ -914,9 +947,7 @@ export default function Home() {
                   borderRadius: "50%", objectFit: "cover",
                   border: `2px solid ${pfpHovered ? t.borderHover : t.border}`,
                   boxShadow: pfpHovered
-                    ? dark
-                      ? "0 0 0 4px rgba(163,230,53,0.13), 0 16px 40px rgba(0,0,0,0.5)"
-                      : "0 0 0 4px rgba(163,230,53,0.18), 0 16px 32px rgba(0,0,0,0.18)"
+                    ? "0 0 0 4px rgba(163,230,53,0.13), 0 16px 40px rgba(0,0,0,0.5)"
                     : "none",
                   opacity: pfpHovered ? 0 : 1,
                   transition: "opacity 0.4s ease, border-color 0.3s ease, box-shadow 0.3s ease",
@@ -930,9 +961,7 @@ export default function Home() {
                   width: "100%", height: "100%",
                   borderRadius: "50%", objectFit: "cover",
                   border: `2px solid ${t.borderHover}`,
-                  boxShadow: dark
-                    ? "0 0 0 4px rgba(163,230,53,0.13), 0 16px 40px rgba(0,0,0,0.5)"
-                    : "0 0 0 4px rgba(163,230,53,0.18), 0 16px 32px rgba(0,0,0,0.18)",
+                  boxShadow: "0 0 0 4px rgba(163,230,53,0.13), 0 16px 40px rgba(0,0,0,0.5)",
                   opacity: pfpHovered ? 1 : 0,
                   transition: "opacity 0.4s ease",
                 }}
@@ -1047,9 +1076,7 @@ export default function Home() {
                 borderRadius: "50%", objectFit: "cover",
                 border: `2px solid ${pfpHovered ? t.borderHover : t.border}`,
                 boxShadow: pfpHovered
-                  ? dark
-                    ? "0 0 0 5px rgba(163,230,53,0.13), 0 24px 64px rgba(0,0,0,0.5)"
-                    : "0 0 0 5px rgba(163,230,53,0.18), 0 24px 48px rgba(0,0,0,0.18)"
+                  ? "0 0 0 5px rgba(163,230,53,0.13), 0 24px 64px rgba(0,0,0,0.5)"
                   : "none",
                 opacity: pfpHovered ? 0 : 1,
                 transition: "opacity 0.4s ease, border-color 0.3s ease, box-shadow 0.3s ease",
@@ -1063,9 +1090,7 @@ export default function Home() {
                 width: "100%", height: "100%",
                 borderRadius: "50%", objectFit: "cover",
                 border: `2px solid ${t.borderHover}`,
-                boxShadow: dark
-                  ? "0 0 0 5px rgba(163,230,53,0.13), 0 24px 64px rgba(0,0,0,0.5)"
-                  : "0 0 0 5px rgba(163,230,53,0.18), 0 24px 48px rgba(0,0,0,0.18)",
+                boxShadow: "0 0 0 5px rgba(163,230,53,0.13), 0 24px 64px rgba(0,0,0,0.5)",
                 opacity: pfpHovered ? 1 : 0,
                 transition: "opacity 0.4s ease",
               }}
@@ -1135,7 +1160,7 @@ export default function Home() {
             {/* Rail track */}
             <div
               className="absolute left-0 top-0 bottom-0"
-              style={{ width: 2, backgroundColor: dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)" }}
+              style={{ width: 2, backgroundColor: "rgba(255,255,255,0.08)" }}
             />
             {/* Growing progress bar */}
             <div
@@ -1235,7 +1260,7 @@ export default function Home() {
                       style={{
                         backgroundColor: isActive
                           ? "rgba(163,230,53,0.12)"
-                          : dark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
+                          : "rgba(255,255,255,0.06)",
                         color: isActive ? "#a3e635" : t.textMuted,
                         border: isActive ? "1px solid rgba(163,230,53,0.3)" : `1px solid ${t.border}`,
                       }}
@@ -1286,7 +1311,7 @@ export default function Home() {
                           className="text-[10px] px-2.5 py-1 rounded-full font-medium transition-all duration-500"
                           style={{
                             backgroundColor: isActive
-                              ? dark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)"
+                              ? "rgba(255,255,255,0.07)"
                               : "transparent",
                             border: `1px solid ${isActive ? t.border : "transparent"}`,
                             color: isActive ? t.textMuted : t.textFaint,
@@ -1622,7 +1647,7 @@ export default function Home() {
                   <div
                     className="toast-enter fixed bottom-8 left-1/2 -translate-x-1/2 z-[999] flex items-center gap-2 px-5 py-3 rounded-full text-sm font-medium shadow-xl"
                     style={{
-                      backgroundColor: dark ? "#1a1a1a" : "#ffffff",
+                      backgroundColor: "#1a1a1a",
                       border: `1px solid #a3e635`,
                       color: "#a3e635",
                       boxShadow: "0 8px 32px rgba(163,230,53,0.15)",
