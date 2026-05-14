@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "mariel@portfolio:~$",
+  title: "M. Inojales | IT Portfolio",
   description: "Frontend Developer who builds responsive web applications and integrates data-driven features using modern technologies.",
   icons: {
   icon: "/m_logo.ico",
