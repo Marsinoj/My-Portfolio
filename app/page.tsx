@@ -12,14 +12,10 @@ import {
   SiMysql,
   SiNodedotjs,
   SiGithub,
-  SiTelegram,
-  SiDiscord,
-  SiX,
-  SiInstagram
 } from "react-icons/si";
-import { FaLinkedin, FaFacebook } from "react-icons/fa";
-import { MdEmail } from "react-icons/md";
-import { supabase } from "@/lib/supabase";
+import { FaLinkedin } from "react-icons/fa";
+import { MdEmail, MdOpenInNew } from "react-icons/md";
+
 
 type Certificate = {
   id: number;
@@ -465,31 +461,12 @@ export default function Home() {
     };
   }, [radialOpen]);
   useEffect(() => {
-  supabase
-    .from("social_links")
-    .select("*")
-    .order("sort_order")
-    .then(({ data }) => {
-      if (!data) return;
-      const iconMap: Record<string, React.ReactNode> = {
-        FaLinkedin:  <FaLinkedin size={16} />,
-        FaFacebook:  <FaFacebook size={16} />,
-        SiGithub:    <SiGithub size={16} />,
-        SiTelegram:  <SiTelegram size={16} />,
-        SiDiscord:   <SiDiscord size={16} />,
-        SiX:         <SiX size={16} />,
-        SiInstagram: <SiInstagram size={16} />,
-        MdEmail:     <MdEmail size={16} />,
-      };
-      setSocialLinks(
-        data.map((s) => ({
-          label: s.label,
-          href:  s.href,
-          icon:  iconMap[s.icon_name] ?? <span className="text-base leading-none">✉</span>,
-          isEmail: s.icon_name === "MdEmail",
-        }))
-      );
-    });
+  setSocialLinks([
+    { label: "LinkedIn",  href: "https://www.linkedin.com/in/mariel-inoj/",  icon: <FaLinkedin size={16} />, isEmail: false },
+    { label: "GitHub",    href: "https://github.com/Marsinoj",                icon: <SiGithub size={16} />,   isEmail: false },
+    { label: "Portfolio", href: "https://mars-portfolio-lake.vercel.app/",    icon: <MdOpenInNew size={16} />, isEmail: false },
+    { label: "mariel.inoj@gmail.com", href: "mailto:mariel.inoj@gmail.com",   icon: <MdEmail size={16} />,    isEmail: false },
+  ]);
 }, []);
 
   // Touch listeners handled by onClick on the center pfp div in mobile section
