@@ -1606,14 +1606,129 @@ export default function Home() {
             )}
 
             {/* Projects */}
-            {radialOpen === "Projects" && (
-              <div
-                className="flex items-center justify-center rounded-2xl h-64 text-sm"
-                style={{ border: `1px solid ${t.border}`, color: t.textFaint }}
-              >
-                Projects coming soon ✦
-              </div>
-            )}
+            {radialOpen === "Projects" && (() => {
+              const projects = [
+                {
+                  id: 1,
+                  title: "5CRG IMS - A Web-Based Inventory Management System",
+                  description: "5CRG IMS is a web-based inventory management system designed to streamline and optimize inventory tracking, management, and reporting processes. It provides a user-friendly interface for managing products, suppliers, customers, and transactions, while also offering real-time insights and analytics to help businesses make informed decisions.",
+                  tags: ["PHP", "MySQL"],
+                  image: "/project2.png",
+                  github: "https://github.com/Marsinoj/repo2",
+                },
+                {
+                  id: 2,
+                  title: "Cross AR - An Augment Reality Journey Through HCDC’s Legacy",
+                  description: "Capstone project focused on creating an AR-based campus experience.",
+                  tags: ["C#", "Objective-C / Objective-C++", "ShaderLab", "HLSL"],
+                  image: "CrossAR.png",
+                  github: "https://github.com/Marsinoj/repo2",
+                },
+                {
+                  id: 3,
+                  title: "Mariel Inojales | Portfolio Website",
+                  description: "Personal portfolio website built with Next.js and Tailwind CSS, showcasing my projects, skills, and journey as a developer.",
+                  tags: ["Next.js", "Tailwind CSS", "React"],
+                  image: "InojalesPortfolio.png",
+                  github: "https://github.com/Marsinoj/My-Portfolio.git",
+                },
+              ];
+              return (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {projects.map((proj) => (
+                    <div
+                      key={proj.id}
+                      className="rounded-2xl overflow-hidden flex flex-col transition-all duration-200"
+                      style={{ backgroundColor: t.bgCard, border: `1px solid ${t.border}` }}
+                      onMouseEnter={(e) => {
+                        (e.currentTarget as HTMLDivElement).style.borderColor = t.borderHover;
+                        (e.currentTarget as HTMLDivElement).style.transform = "translateY(-3px)";
+                      }}
+                      onMouseLeave={(e) => {
+                        (e.currentTarget as HTMLDivElement).style.borderColor = t.border;
+                        (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)";
+                      }}
+                    >
+                      {/* Thumbnail */}
+                      <div
+                        style={{
+                          height: 180,
+                          overflow: "hidden",
+                          backgroundColor: t.border,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0,
+                        }}
+                      >
+                        <img
+                          src={proj.image}
+                          alt={proj.title}
+                          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                          onError={(e) => {
+                            const img = e.currentTarget as HTMLImageElement;
+                            img.onerror = null; // prevent infinite loop
+                            img.style.display = "none";
+                            const parent = img.parentElement;
+                            if (parent && !parent.querySelector(".img-fallback")) {
+                              const fallback = document.createElement("span");
+                              fallback.className = "img-fallback";
+                              fallback.textContent = "No preview yet";
+                              fallback.style.cssText = `font-size:11px; color:${t.textFaint}`;
+                              parent.appendChild(fallback);
+                            }
+                          }}
+                        />
+                      </div>
+
+                      {/* Content */}
+                      <div className="p-5 flex flex-col gap-4 flex-1">
+                      {/* Title */}
+                      <div>
+                        <p className="text-sm font-semibold mb-1" style={{ color: t.text }}>{proj.title}</p>
+                        <p className="text-xs leading-relaxed" style={{ color: t.textMuted }}>{proj.description}</p>
+                      </div>
+
+                      {/* Tags */}
+                      <div className="flex flex-wrap gap-2">
+                        {proj.tags.map((tag) => (
+                          <span
+                            key={tag}
+                            className="text-[10px] px-2 py-0.5 rounded-full"
+                            style={{ backgroundColor: `${t.border}`, color: t.textFaint, border: `1px solid ${t.border}` }}
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+
+                      {/* Links */}
+                      <div className="flex gap-2 mt-auto flex-wrap">
+                        <a
+                          href={proj.github}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-all"
+                          style={{ border: `1px solid ${t.border}`, color: t.textMuted }}
+                          onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => {
+                            e.currentTarget.style.backgroundColor = t.btnHoverBg;
+                            e.currentTarget.style.color = t.btnHoverText;
+                          }}
+                          onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => {
+                            e.currentTarget.style.backgroundColor = "transparent";
+                            e.currentTarget.style.color = t.textMuted;
+                          }}
+                        >
+                          <SiGithub size={12} />
+                          GitHub
+                        </a>
+                      </div>
+                      </div>{/* end content */}
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
 
             {/* Contact */}
             {radialOpen === "Contact" && (
@@ -1689,6 +1804,7 @@ export default function Home() {
           </div>
         </div>
       )}
+
     </main>
   );
 }
