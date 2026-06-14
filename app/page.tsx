@@ -734,7 +734,7 @@ export default function Home() {
 
       {/* ── Navigation ── */}
       <nav
-        className="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-6 sm:px-12 lg:px-[280px] py-5 backdrop-blur-xl transition-colors duration-300"
+        className="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-6 sm:px-12 lg:px-[384px] py-5 backdrop-blur-xl transition-colors duration-300"
         style={{ borderBottom: `1px solid ${t.border}`, backgroundColor: `${t.bg}b3` }}
       >
         <button
@@ -761,7 +761,7 @@ export default function Home() {
 
 
       {/* ── Hero ── */}
-      <section id="hero" className="relative min-h-0 md:min-h-screen flex flex-col justify-start pb-12 md:pb-24 px-6 sm:px-12 lg:px-[280px] pt-20 md:pt-32">
+      <section id="hero" className="relative min-h-0 md:min-h-screen flex flex-col justify-start pb-12 md:pb-24 px-6 sm:px-12 lg:px-[384px] pt-20 md:pt-32">
         <div className="mb-8">
           <span
             className="inline-flex items-center gap-2 text-xs rounded-full px-4 py-1.5"
@@ -1093,19 +1093,19 @@ export default function Home() {
 
 
       {/* ── Tools (with About + Gallery + Journey at top) ── */}
-      <section id="tools" className="px-6 sm:px-12 lg:px-[280px] pt-10 pb-16 md:pt-14 md:pb-32" style={{ borderTop: `1px solid ${t.border}` }}>
+      <section id="tools" className="px-6 sm:px-12 lg:px-[384px] pt-10 pb-16 md:pt-14 md:pb-32" style={{ borderTop: `1px solid ${t.border}` }}>
 
         {/* ── About ── */}
-        <div className="mb-12">
+        <div className="mb-6">
   <p
-    className="text-xs uppercase tracking-widest mb-2"
+    className="text-xs uppercase tracking-widest mb-1"
     style={{ color: t.textFaint }}
   >
     About
   </p>
 
   <h2
-    className="text-[clamp(2.5rem,6vw,5rem)] font-bold tracking-tight mb-3"
+    className="text-[clamp(1.8rem,4vw,3.2rem)] font-bold tracking-tight mb-2"
     style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: t.text }}
   >
     The Mind Behind
@@ -1311,16 +1311,15 @@ export default function Home() {
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
             <p className="text-xs uppercase tracking-widest font-semibold" style={{ color: "#22d3ee" }}>Gallery</p>
           </div>
+
+          {/* Infinite marquee gallery — both rows scroll left, staggered like kaizenics */}
           <ImageCarousel
             images={[
-              { src: "/Certificate1.png", alt: "NCII Certificate" },
-              { src: "/Certificate2.png", alt: "JavaScript Course" },
-              { src: "/Certificate3.png", alt: "React Certificate" },
-              { src: "/Certificate4.png", alt: "Python Certificate" },
-              { src: "/Certificate5.png", alt: "Web Development" },
-              { src: "/Certificate6.png", alt: "UI/UX Design" },
+              { src: "/project2.png", alt: "5CRG IMS - Inventory Management System" },
+              { src: "CrossAR.png", alt: "Cross AR - Augmented Reality Campus Experience" },
+              { src: "InojalesPortfolio.png", alt: "Personal Portfolio Website" },
             ]}
-            theme={{ bgCard: t.bgCard, border: t.border, textMuted: t.textMuted, text: t.text }}
+            theme={t}
             dark={dark}
           />
         </div>
@@ -1358,7 +1357,7 @@ export default function Home() {
         >
           <GridBg />
           <div
-            className="sticky top-0 z-10 flex items-center justify-between px-6 sm:px-12 lg:px-[280px] py-5 backdrop-blur-xl"
+            className="sticky top-0 z-10 flex items-center justify-between px-6 sm:px-12 lg:px-[384px] py-5 backdrop-blur-xl"
             style={{ borderBottom: `1px solid ${t.border}`, backgroundColor: `${t.bg}cc` }}
           >
             <button
@@ -1374,7 +1373,7 @@ export default function Home() {
               Curriculum Vitae
             </span>
           </div>
-          <div className="px-6 sm:px-12 lg:px-[280px] py-16">
+          <div className="px-6 sm:px-12 lg:px-[384px] py-16">
             <p className="text-xs uppercase tracking-widest mb-6" style={{ color: t.textFaint }}>Curriculum Vitae</p>
             <h2
               className="text-[clamp(1.8rem,4vw,3.5rem)] font-bold tracking-tight mb-10"
@@ -1397,7 +1396,7 @@ export default function Home() {
         >
           <GridBg />
           <div
-            className="sticky top-0 z-10 flex items-center justify-between px-6 sm:px-12 lg:px-[280px] py-5 backdrop-blur-xl"
+            className="sticky top-0 z-10 flex items-center justify-between px-6 sm:px-12 lg:px-[384px] py-5 backdrop-blur-xl"
             style={{ borderBottom: `1px solid ${t.border}`, backgroundColor: `${t.bg}cc` }}
           >
             <button
@@ -1414,7 +1413,7 @@ export default function Home() {
             </span>
           </div>
 
-          <div className="px-6 sm:px-12 lg:px-[280px] py-16 flex flex-col lg:flex-row gap-16">
+          <div className="px-6 sm:px-12 lg:px-[384px] py-16 flex flex-col lg:flex-row gap-16">
             <div className="flex-1 min-w-0">
               <p className="text-xs uppercase tracking-widest mb-6" style={{ color: t.textFaint }}>Certificate Details</p>
               <h2
@@ -1540,7 +1539,7 @@ export default function Home() {
 
           {/* Top bar */}
           <div
-            className="sticky top-0 z-10 flex items-center justify-between px-6 sm:px-12 lg:px-[280px] py-5 backdrop-blur-xl"
+            className="sticky top-0 z-10 flex items-center justify-between px-6 sm:px-12 lg:px-[384px] py-5 backdrop-blur-xl"
             style={{ borderBottom: `1px solid ${t.border}`, backgroundColor: `${t.bg}cc` }}
           >
             <button
@@ -1557,7 +1556,7 @@ export default function Home() {
             </span>
           </div>
 
-          <div className="px-6 sm:px-12 lg:px-[280px] py-16">
+          <div className="px-6 sm:px-12 lg:px-[384px] py-16">
             <p className="text-xs uppercase tracking-widest mb-6" style={{ color: t.textFaint }}>{radialOpen}</p>
             <h2
               className="text-[clamp(1.8rem,4vw,3.5rem)] font-bold tracking-tight mb-10"
