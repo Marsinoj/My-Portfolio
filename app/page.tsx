@@ -359,7 +359,7 @@ export default function Home() {
     return () => window.removeEventListener("mousemove", move);
   }, []);
 
-  const YOUR_EMAIL = "marieljinojales@gmail.com"; // ← change this to your email
+  const YOUR_EMAIL = "mariel.inoj@gmail.com"; // ← change this to your email
 
   const handleCopyEmail = (email: string) => {
     navigator.clipboard.writeText(email).then(() => {
@@ -464,8 +464,8 @@ export default function Home() {
   setSocialLinks([
     { label: "LinkedIn",  href: "https://www.linkedin.com/in/mariel-inoj/",  icon: <FaLinkedin size={16} />, isEmail: false },
     { label: "GitHub",    href: "https://github.com/Marsinoj",                icon: <SiGithub size={16} />,   isEmail: false },
-    { label: "Portfolio", href: "https://mars-portfolio-lake.vercel.app/",    icon: <MdOpenInNew size={16} />, isEmail: false },
     { label: "mariel.inoj@gmail.com", href: "mailto:mariel.inoj@gmail.com",   icon: <MdEmail size={16} />,    isEmail: false },
+    { label: "Portfolio", href: "https://mars-portfolio-lake.vercel.app/",    icon: <MdOpenInNew size={16} />, isEmail: false },
   ]);
 }, []);
 
@@ -767,7 +767,7 @@ export default function Home() {
             className="inline-flex items-center gap-2 text-xs rounded-full px-4 py-1.5"
             style={{ border: `1px solid ${t.border}`, color: t.textMuted }}
           >
-            <span className="text-lime-400">&#x2736;</span> Student &#xB7; Holy Cross of Davao College &#x2197;
+            <span className="text-lime-400">&#x2736;</span> Information Technology Graduate &#xB7; Frontend Developer &#x2197;
           </span>
         </div>
 
@@ -784,8 +784,8 @@ export default function Home() {
         <div className="flex flex-col md:flex-row md:items-end gap-8 max-w-5xl">
           <p className="text-sm leading-relaxed max-w-sm" style={{ color: t.textMuted }}>
             <span className="font-semibold" style={{ color: t.text }}>Mariel Inojales</span> is an{" "}
-            <span className="font-semibold" style={{ color: t.text }}>IT student and frontend developer</span>{" "}
-            focused on building responsive, user-centered digital systems that turn ideas into real functionality.
+            <span className="font-semibold" style={{ color: t.text }}>Information Technology graduate and Frontend Developer</span>{" "}
+            passionate about who specializes in building responsive, user-centered web applications that transform ideas into functional, intuitive digital experiences.
           </p>
           <div className="flex gap-3 flex-shrink-0">
             <button
@@ -1315,9 +1315,10 @@ export default function Home() {
           {/* Infinite marquee gallery — both rows scroll left, staggered like kaizenics */}
           <ImageCarousel
             images={[
-              { src: "/project2.png", alt: "5CRG IMS - Inventory Management System" },
+              { src: "5crgims.png", alt: "5CRG IMS - Inventory Management System" },
               { src: "CrossAR.png", alt: "Cross AR - Augmented Reality Campus Experience" },
               { src: "InojalesPortfolio.png", alt: "Personal Portfolio Website" },
+              { src: "75HardChallenge.png", alt: "75 Hard Challenge" },
             ]}
             theme={t}
             dark={dark}
@@ -1612,8 +1613,8 @@ export default function Home() {
                   title: "5CRG IMS - A Web-Based Inventory Management System",
                   description: "5CRG IMS is a web-based inventory management system designed to streamline and optimize inventory tracking, management, and reporting processes. It provides a user-friendly interface for managing products, suppliers, customers, and transactions, while also offering real-time insights and analytics to help businesses make informed decisions.",
                   tags: ["PHP", "MySQL"],
-                  image: "/project2.png",
-                  github: "https://github.com/Marsinoj/repo2",
+                  image: "/5crgims.png",
+                  github: "https://github.com/kaizerklent/Inventory_System.git",
                 },
                 {
                   id: 2,
@@ -1630,6 +1631,14 @@ export default function Home() {
                   tags: ["Next.js", "Tailwind CSS", "React"],
                   image: "InojalesPortfolio.png",
                   github: "https://github.com/Marsinoj/My-Portfolio.git",
+                },
+                {
+                  id: 4,
+                  title: "75 Hard Day Challenge Tracker",
+                  description: "A simple tracker for monitoring progress on the 75 Hard day challenge.",
+                  tags: ["TypeScript", "CSS", "HTML"],
+                  image: "75HardChallenge.png",
+                  github: "https://github.com/Marsinoj/75HardChallenge.git",
                 },
               ];
               return (
