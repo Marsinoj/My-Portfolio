@@ -785,7 +785,7 @@ export default function Home() {
           <p className="text-sm leading-relaxed max-w-sm" style={{ color: t.textMuted }}>
             <span className="font-semibold" style={{ color: t.text }}>Mariel Inojales</span> is an{" "}
             <span className="font-semibold" style={{ color: t.text }}>Information Technology graduate and Frontend Developer</span>{" "}
-            passionate about who specializes in building responsive, user-centered web applications that transform ideas into functional, intuitive digital experiences.
+            who specializes in building responsive, user-centered web applications that transform ideas into functional, intuitive digital experiences.
           </p>
           <div className="flex gap-3 flex-shrink-0">
             <button
